@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import path from "node:path";
 // React插件：用于处理React单文件组件和JSX语法，使用SWC进行快速编译
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 // 检查插件：提供可视化界面查看Vite的插件钩子和模块转换过程，便于调试
 import Inspect from "vite-plugin-inspect";
 // TailwindCSS插件：集成TailwindCSS工具，处理CSS类的生成和注入
@@ -29,7 +29,7 @@ export default defineConfig({
     viteCompression(),
     // 配置打包分析工具
     visualizer({
-      open: true, // 打包完成后自动打开分析页面
+      open: false, // 打包完成后自动打开分析页面
       gzipSize: true, // 显示gzip压缩后的体积
       brotliSize: true, // 显示brotli压缩后的体积
       sourcemap: true, // 结合sourcemap展示更详细的模块信息
