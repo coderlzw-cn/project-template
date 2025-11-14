@@ -19,8 +19,11 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    // 启用React支持，使用SWC编译器（比Babel更快）
-    react(),
+    react({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    }),
     // 启用插件检查器，可通过访问特定URL查看构建过程细节
     Inspect(),
     // 集成TailwindCSS，自动处理配置文件和CSS类生成
