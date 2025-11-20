@@ -7,4 +7,4 @@ import { ConfigurableModuleClass } from './ioredis.module-definition';
   providers: [IoredisService],
   exports: [IoredisService],
 })
-export class IoredisModule extends ConfigurableModuleClass {}
+export class NestIoredisModule extends ConfigurableModuleClass {}

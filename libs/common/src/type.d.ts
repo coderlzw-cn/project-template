@@ -1,9 +1,3 @@
-// namespace Express {
-//   interface Request {
-//     user?: User;
-//   }
-// }
-
 interface User {
   id: string;
   username: string;

@@ -27,7 +27,7 @@ export class ConsulService implements OnModuleInit, OnModuleDestroy {
       discover: false,
       timeout: 5000,
       ...(options ?? {}),
-    } as ConsulModuleOptions;
+    };
 
     this.baseUrl = `${this.options.protocol}://${this.options.host}:${this.options.port}`;
   }
@@ -36,10 +36,10 @@ export class ConsulService implements OnModuleInit, OnModuleDestroy {
     if (this.options.register && this.options.service) {
       this.registerServiceWithRetry(this.options.service).subscribe({
         next: () => {
-          this.logger.log('Service registration completed');
+          this.logger.log(`ID: ${this.options.service?.ID} Name: ${this.options.service?.Name} Service registration completed`);
         },
         error: (error: Error) => {
-          this.logger.error(`Service registration failed: ${error.message}`);
+          this.logger.error(`ID: ${this.options.service?.ID} Name: ${this.options.service?.Name} Service registration failed: ${error.message}`);
         },
       });
     }

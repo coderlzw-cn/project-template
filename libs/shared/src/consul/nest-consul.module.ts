@@ -7,4 +7,4 @@ import { ConfigurableModuleClass } from './consul.module-definition';
   providers: [ConsulService],
   exports: [ConsulService],
 })
-export class ConsulModule extends ConfigurableModuleClass {}
+export class NestConsulModule extends ConfigurableModuleClass {}

@@ -37,7 +37,9 @@ const swaggerBootstrap = (app: INestApplication, dev: boolean = false) => {
 };
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestApplication>(AppModule);
+  const app = await NestFactory.create<NestApplication>(AppModule, {
+    logger: ['debug', 'log'],
+  });
   const httpAdapterHost = app.get(HttpAdapterHost);
   const appConfiguration = appConfig();
 
