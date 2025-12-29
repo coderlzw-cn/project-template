@@ -15,15 +15,20 @@ import { createHtmlPlugin } from "vite-plugin-html";
 // 压缩插件：对打包后的静态资源进行压缩（如gzip/brotli），减小文件体积
 import viteCompression from "vite-plugin-compression";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
-
+// React Dev Inspector 插件：用于在开发过程中检查React组件树和状态
+import { inspectorServer } from "@react-dev-inspector/vite-plugin";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    //  ReactInspector(),
     react({
       babel: {
-        plugins: ["babel-plugin-react-compiler"],
+        plugins: ["babel-plugin-react-compiler",
+          '@react-dev-inspector/babel-plugin',
+        ],
       },
     }),
+    inspectorServer(),
     // 启用插件检查器，可通过访问特定URL查看构建过程细节
     Inspect(),
     // 集成TailwindCSS，自动处理配置文件和CSS类生成

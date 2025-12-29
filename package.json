@@ -20,6 +20,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@react-dev-inspector/babel-plugin": "^2.0.1",
+    "@react-dev-inspector/vite-plugin": "^2.0.1",
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
@@ -32,6 +34,7 @@
     "globals": "^16.4.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
+    "react-dev-inspector": "^2.0.1",
     "rollup-plugin-visualizer": "^6.0.5",
     "svgo": "^4.0.0",
     "turbo": "^2.6.1",
@@ -43,7 +46,7 @@
     "vite-plugin-image-optimizer": "^2.0.3",
     "vite-plugin-inspect": "^11.3.3"
   },
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@10.23.0",
   "pnpm": {
     "overrides": {
       "vite": "npm:rolldown-vite@7.1.14"
