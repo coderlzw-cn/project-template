@@ -25,27 +25,31 @@ interface RobustWebSocketOptions {
  * 实现了自动重连、消息缓冲、可配置心跳、灵活事件绑定和状态查询，并支持单例模式。
  */
 
-type KnownEventName = 'open' | 'message' | 'close' | 'error' | 'ping' | 'pong';
+type KnownEventName = "open" | "message" | "close" | "error" | "ping" | "pong";
 type AnyEventName = KnownEventName | (string & {});
 
-type ListenerArgs<E extends string> =
-  E extends 'open' ? [Event] :
-    E extends 'message' ? [MessageEvent] :
-      E extends 'close' ? [CloseEvent] :
-        E extends 'error' ? [Event | Error] :
-          E extends 'ping' ? [string] :
-            E extends 'pong' ? [unknown] :
-              unknown[];
+type ListenerArgs<E extends string> = E extends "open"
+  ? [Event]
+  : E extends "message"
+    ? [MessageEvent]
+    : E extends "close"
+      ? [CloseEvent]
+      : E extends "error"
+        ? [Event | Error]
+        : E extends "ping"
+          ? [string]
+          : E extends "pong"
+            ? [unknown]
+            : unknown[];
 
 type ListenerCallback<E extends string = string> = (...args: ListenerArgs<E>) => void;
 
 interface ListenerEntry {
   callback: ListenerCallback;
-  type: 'on' | 'once';
+  type: "on" | "once";
 }
 
 export class RobustWebSocket {
-
   // --- 【单例控制】静态属性 ---
   private static instance: RobustWebSocket | null = null;
   // ----------------------------
@@ -69,16 +73,16 @@ export class RobustWebSocket {
 
   // --- 灵活配置属性 ---
   private readonly getReconnectDelayFn: ((attemptCount: number) => number) | null = null;
-  private readonly customPingMessage: string | object = 'ping';
+  private readonly customPingMessage: string | object = "ping";
   private readonly isPongFn: ((data: unknown) => boolean) | null = null;
   // --------------------
 
   /**
    * 构造函数。使用 new RobustWebSocket(...) 创建非单例实例。
    */
-  constructor(url: string, options: Omit<RobustWebSocketOptions, 'url'> = {}) {
+  constructor(url: string, options: Omit<RobustWebSocketOptions, "url"> = {}) {
     if (!url) {
-      throw new Error('WebSocket URL is required.');
+      throw new Error("WebSocket URL is required.");
     }
     this.url = url;
 
@@ -88,10 +92,10 @@ export class RobustWebSocket {
     this.heartbeatEnabled = options.heartbeatEnabled ?? true;
 
     this.getReconnectDelayFn = options.getReconnectDelay ?? null;
-    this.customPingMessage = options.pingMessage !== undefined ? options.pingMessage : 'ping';
+    this.customPingMessage = options.pingMessage !== undefined ? options.pingMessage : "ping";
     this.isPongFn = options.isPong ?? null;
 
-    this.listeners.set('message', []);
+    this.listeners.set("message", []);
   }
 
   // --- 【单例控制】静态方法 ---
@@ -102,17 +106,22 @@ export class RobustWebSocket {
    * @param options - 配置选项 (仅在首次创建时需要)
    * @returns 唯一的 RobustWebSocket 实例
    */
-  public static getInstance(url: string, options: Omit<RobustWebSocketOptions, 'url'> = {}): RobustWebSocket {
+  public static getInstance(
+    url: string,
+    options: Omit<RobustWebSocketOptions, "url"> = {},
+  ): RobustWebSocket {
     if (!RobustWebSocket.instance) {
       if (!url) {
         throw new Error("首次调用 getInstance() 必须提供 URL 参数来创建实例。");
       }
-      console.log('RobustWebSocket: 创建新的单例实例...');
+      console.log("RobustWebSocket: 创建新的单例实例...");
       RobustWebSocket.instance = new RobustWebSocket(url, options);
     } else {
       // 实例已存在，忽略新的参数
       if (RobustWebSocket.instance.url !== url) {
-        console.warn(`RobustWebSocket: 单例已存在，忽略本次调用中的新 URL (${url})。正在返回现有实例。`);
+        console.warn(
+          `RobustWebSocket: 单例已存在，忽略本次调用中的新 URL (${url})。正在返回现有实例。`,
+        );
       }
     }
     return RobustWebSocket.instance;
@@ -140,11 +149,11 @@ export class RobustWebSocket {
   private emit<E extends AnyEventName>(eventName: E, ...args: ListenerArgs<E>): void {
     // 触发普通监听器
     const currentListeners = this.listeners.get(eventName) || [];
-    currentListeners.forEach(l => (l.callback as ListenerCallback<E>)(...args));
+    currentListeners.forEach((l) => (l.callback as ListenerCallback<E>)(...args));
 
     // 触发 once 监听器，并移除
-    const onceListeners = (this.listeners.get(`once:${eventName}`) || []);
-    onceListeners.forEach(l => (l.callback as ListenerCallback<E>)(...args));
+    const onceListeners = this.listeners.get(`once:${eventName}`) || [];
+    onceListeners.forEach((l) => (l.callback as ListenerCallback<E>)(...args));
     this.listeners.set(`once:${eventName}`, []);
   }
 
@@ -153,13 +162,16 @@ export class RobustWebSocket {
    * @param isReconnect - 是否是重连
    */
   public connect(isReconnect: boolean = false): void {
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
-      console.warn('WebSocket is already connecting or open.');
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)
+    ) {
+      console.warn("WebSocket is already connecting or open.");
       return;
     }
 
     if (this.isConnecting) {
-      console.log('Already in the process of connecting...');
+      console.log("Already in the process of connecting...");
       return;
     }
 
@@ -171,7 +183,7 @@ export class RobustWebSocket {
         console.warn(`达到最大重连次数 (${this.maxReconnectAttempts})，停止自动重连。`);
         this.shouldReconnect = false;
         this.isConnecting = false;
-        this.emit('error', new Error('Max reconnect attempts reached'));
+        this.emit("error", new Error("Max reconnect attempts reached"));
         return;
       }
 
@@ -210,7 +222,7 @@ export class RobustWebSocket {
     if (this.heartbeatEnabled) {
       this.startHeartbeat();
     }
-    this.emit('open', event);
+    this.emit("open", event);
 
     this._flushSendQueue();
   }
@@ -220,7 +232,7 @@ export class RobustWebSocket {
     const rawData = event.data;
     let data: unknown = rawData;
 
-    if (typeof rawData === 'string') {
+    if (typeof rawData === "string") {
       try {
         data = JSON.parse(rawData);
       } catch {
@@ -232,31 +244,31 @@ export class RobustWebSocket {
     let isPong: boolean = false;
     if (this.isPongFn) {
       isPong = this.isPongFn(data);
-    } else if (data === 'pong') {
+    } else if (data === "pong") {
       isPong = true;
-    } else if (typeof data === 'object' && data !== null && 'type' in data) {
+    } else if (typeof data === "object" && data !== null && "type" in data) {
       const payload = data as { type?: string };
-      isPong = payload.type === 'pong';
+      isPong = payload.type === "pong";
     } else {
       isPong = false;
     }
 
     if (isPong) {
       this.clearPongTimeout();
-      this.emit('pong', data);
+      this.emit("pong", data);
       return;
     }
     // --------------------------------
 
-    this.emit('message', event);
+    this.emit("message", event);
   }
 
   /** @private 连接关闭事件处理 */
   private _onClose(event: CloseEvent): void {
     this.isConnecting = false;
-    console.log('WebSocket 连接已关闭.', event.code, event.reason);
+    console.log("WebSocket 连接已关闭.", event.code, event.reason);
     this.stopHeartbeat();
-    this.emit('close', event);
+    this.emit("close", event);
 
     if (this.shouldReconnect) {
       this.connect(true);
@@ -265,8 +277,8 @@ export class RobustWebSocket {
 
   /** @private 连接错误事件处理 */
   private _onError(event: Event): void {
-    console.error('WebSocket 发生错误:', event);
-    this.emit('error', event);
+    console.error("WebSocket 发生错误:", event);
+    this.emit("error", event);
   }
 
   // --- Ping/Pong 心跳机制 ---
@@ -281,7 +293,7 @@ export class RobustWebSocket {
     this.heartbeatTimer = window.setInterval(() => {
       this.ping();
     }, this.heartbeatInterval);
-    console.log('心跳机制已启动.');
+    console.log("心跳机制已启动.");
   }
 
   /** @private 停止心跳机制 */
@@ -306,20 +318,20 @@ export class RobustWebSocket {
     if (this.isConnected && this.ws) {
       let messageToSend: string;
 
-      if (typeof this.customPingMessage === 'object') {
+      if (typeof this.customPingMessage === "object") {
         messageToSend = JSON.stringify({ ...this.customPingMessage, timestamp: Date.now() });
       } else {
         messageToSend = this.customPingMessage as string;
       }
 
       this.ws.send(messageToSend);
-      this.emit('ping', messageToSend);
+      this.emit("ping", messageToSend);
 
       this.clearPongTimeout();
       // window.setTimeout 返回 number 类型
       this.pongTimeoutTimer = window.setTimeout(() => {
-        console.warn('Ping 超时，未收到 Pong 响应，强制关闭连接以触发重连。');
-        this.ws?.close(1000, 'Heartbeat timeout');
+        console.warn("Ping 超时，未收到 Pong 响应，强制关闭连接以触发重连。");
+        this.ws?.close(1000, "Heartbeat timeout");
       }, this.pongTimeout);
     }
   }
@@ -342,11 +354,10 @@ export class RobustWebSocket {
   /** @private 内部发送数据逻辑 */
   private _sendInternal(data: string | object): void {
     if (this.ws) {
-      const message = typeof data === 'object' ? JSON.stringify(data) : data;
+      const message = typeof data === "object" ? JSON.stringify(data) : data;
       this.ws.send(message);
     }
   }
-
 
   /**
    * 发送数据 (支持缓冲)
@@ -359,13 +370,13 @@ export class RobustWebSocket {
       return true;
     } else {
       this.sendQueue.push(data);
-      console.warn('WebSocket 未连接，消息已加入缓冲队列。', data);
+      console.warn("WebSocket 未连接，消息已加入缓冲队列。", data);
       return true;
     }
   }
 
   /** 手动关闭连接 */
-  public close(code: number = 1000, reason: string = ''): void {
+  public close(code: number = 1000, reason: string = ""): void {
     this.shouldReconnect = false;
     this.isConnecting = false;
     this.stopHeartbeat();
@@ -378,17 +389,17 @@ export class RobustWebSocket {
 
   /** 绑定事件监听器 (多次触发) */
   public on<E extends AnyEventName>(eventName: E, callback: ListenerCallback<E>): void {
-    if (typeof callback !== 'function') return;
+    if (typeof callback !== "function") return;
     const listeners = this.listeners.get(eventName) || [];
-    listeners.push({ callback: callback as ListenerCallback, type: 'on' });
+    listeners.push({ callback: callback as ListenerCallback, type: "on" });
     this.listeners.set(eventName, listeners);
   }
 
   /** 绑定事件监听器 (只触发一次) */
   public once<E extends AnyEventName>(eventName: E, callback: ListenerCallback<E>): void {
-    if (typeof callback !== 'function') return;
+    if (typeof callback !== "function") return;
     const listeners = this.listeners.get(`once:${eventName}`) || [];
-    listeners.push({ callback: callback as ListenerCallback, type: 'once' });
+    listeners.push({ callback: callback as ListenerCallback, type: "once" });
     this.listeners.set(`once:${eventName}`, listeners);
   }
 
@@ -397,7 +408,10 @@ export class RobustWebSocket {
     // 移除普通监听器
     const currentListeners = this.listeners.get(eventName) || [];
     if (callback) {
-      this.listeners.set(eventName, currentListeners.filter(l => l.callback !== callback));
+      this.listeners.set(
+        eventName,
+        currentListeners.filter((l) => l.callback !== callback),
+      );
     } else {
       this.listeners.set(eventName, []);
     }
@@ -405,7 +419,10 @@ export class RobustWebSocket {
     // 移除 once 监听器
     const onceListeners = this.listeners.get(`once:${eventName}`) || [];
     if (callback) {
-      this.listeners.set(`once:${eventName}`, onceListeners.filter(l => l.callback !== callback));
+      this.listeners.set(
+        `once:${eventName}`,
+        onceListeners.filter((l) => l.callback !== callback),
+      );
     } else {
       this.listeners.set(`once:${eventName}`, []);
     }

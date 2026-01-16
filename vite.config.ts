@@ -23,9 +23,7 @@ export default defineConfig({
     //  ReactInspector(),
     react({
       babel: {
-        plugins: ["babel-plugin-react-compiler",
-          '@react-dev-inspector/babel-plugin',
-        ],
+        plugins: ["babel-plugin-react-compiler", "@react-dev-inspector/babel-plugin"],
       },
     }),
     inspectorServer(),
