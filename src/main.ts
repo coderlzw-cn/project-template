@@ -14,12 +14,7 @@ import { join } from 'node:path';
  * @returns void
  */
 const swaggerBootstrap = (app: INestApplication, dev: boolean = false) => {
-  const swaggerOptions = new DocumentBuilder()
-    .setTitle('API Documentation')
-    .setDescription('API documentation for the project')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  const swaggerOptions = new DocumentBuilder().setTitle('API Documentation').setDescription('API documentation for the project').setVersion('1.0').addBearerAuth().build();
 
   const document = SwaggerModule.createDocument(app, swaggerOptions);
   SwaggerModule.setup('swagger', app, document, {

@@ -1,13 +1,10 @@
+import { type UdpMessagePayload } from '@app/shared/udp';
 import { Injectable, Logger } from '@nestjs/common';
-import { RabbitmqService } from '@app/shared/rabbitmq/rabbitmq.service';
-import { MinioService } from '@app/shared/minio/minio.service';
+import { OnEvent } from '@nestjs/event-emitter';
 @Injectable()
 export class AppService {
   private readonly logger = new Logger(AppService.name);
-  constructor(
-    private readonly rabbitmqService: RabbitmqService,
-    private readonly minioService: MinioService,
-  ) {}
+  constructor() {} // private readonly minioService: MinioService, // private readonly rabbitmqService: RabbitmqService,
 
   getHello() {
     // this.rabbitmqService.publish('my_exchanges_test1', 'my_routing_key_test1', { message: 'Hello World!' });
@@ -46,16 +43,26 @@ export class AppService {
     //   .catch((err) => {
     //     console.log(err);
     //   });
-    this.minioService
-      .remove('test-bucket.txt', {
-        bucket: 'test-bucket',
-      })
-      .then(() => {
-        console.log('File removed');
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    // this.minioService
+    //   .remove('test-bucket.txt', {
+    //     bucket: 'test-bucket',
+    //   })
+    //   .then(() => {
+    //     console.log('File removed');
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
     return 'Hello World!';
   }
+
+  @OnEvent('udp.message.LOCAL_SERVER_A')
+  handleRemoteAData(payload: UdpMessagePayload) {
+    console.log(payload);
+  }
+
+  // @OnEvent('udp.message.REMOTE_B')
+  // handleRemoteBData(payload: UdpMessagePayload) {
+  //   console.log(payload);
+  // }
 }

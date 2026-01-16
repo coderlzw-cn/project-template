@@ -1,13 +1,6 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy, Inject, Optional } from '@nestjs/common';
 import { defer, retry, timer, Observable } from 'rxjs';
-import type {
-  ConsulModuleOptions,
-  ConsulServiceRegistration,
-  ConsulServiceInfo,
-  ConsulCatalogService,
-  ConsulHealthCheckResponse,
-  ConsulMember,
-} from './consul.interface';
+import type { ConsulModuleOptions, ConsulServiceRegistration, ConsulServiceInfo, ConsulCatalogService, ConsulHealthCheckResponse, ConsulMember } from './consul.interface';
 import { MODULE_OPTIONS_TOKEN } from './consul.module-definition';
 
 @Injectable()
