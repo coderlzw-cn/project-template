@@ -7,6 +7,7 @@ import { HttpExceptionFilter } from '@app/common/filters/http-exception.filter';
 import { CatchEverythingFilter } from '@app/common/filters/all-exception.filter';
 import { RequestLoggerMiddleware } from '@app/common/middleware/request-logger.middleware';
 import { join } from 'node:path';
+import { TransformInterceptor } from '@app/common/interceptors/transform';
 /**
  * 启动 Swagger
  * @param app INestApplication
@@ -44,6 +45,9 @@ async function bootstrap() {
   // 全局路由前缀
   app.setGlobalPrefix(appConfiguration.prefixApi);
 
+  // 注册全局响应转换拦截器
+  app.useGlobalInterceptors(new TransformInterceptor());
+
   // 开放静态资源
   app.useStaticAssets(join(process.cwd(), 'resources/images'), {
     prefix: '/images/', //设置虚拟路径
@@ -74,10 +78,12 @@ async function bootstrap() {
 }
 void bootstrap();
 
+// 捕获未被 .catch 处理的 Promise 拒绝
 process.on('unhandledRejection', (reason: Error) => {
   console.error('未处理的拒绝：', reason.message);
 });
 
+// 捕获同步代码中未被 try...catch 捕获的异常和异步代码中未被处理的同步错误
 process.on('uncaughtException', (error: Error) => {
   console.error('未捕获的异常：', error.message);
 });

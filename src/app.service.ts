@@ -53,7 +53,7 @@ export class AppService {
     //   .catch((err) => {
     //     console.log(err);
     //   });
-    return 'Hello World!';
+    return null; //'Hello World!';
   }
 
   @OnEvent('udp.message.LOCAL_SERVER_A')
