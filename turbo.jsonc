@@ -1,0 +1,64 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "stream",
+  "globalDependencies": [
+    ".env*",
+    "tsconfig.json",
+    ".eslintrc.js",
+    ".prettierrc"
+  ],
+  // 环境变量模式：strict 仅允许配置的 env 变量被任务访问（推荐，避免环境变量污染）
+  "envMode": "strict",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "interruptible": true
+    },
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "dist/**/*.map"
+      ]
+    },
+    "format": {
+      "dependsOn": [
+        "^format"
+      ],
+      "outputs": [
+        "dist/**",
+        "dist/**/*.map"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "^lint"
+      ],
+      "outputs": [
+        "dist/**",
+        "dist/**/*.map"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^test"
+      ],
+      "outputs": [
+        "dist/**",
+        "dist/**/*.map"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck"
+      ],
+      "outputs": [
+        "dist/**",
+        "dist/**/*.map"
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext", // 指定使用 Node.js 下一代模块系统
+    "resolvePackageJsonExports": true, // 解析 package.json 中的 exports 字段
+    "esModuleInterop": true, // 启用 ES 模块互操作性
+    "declaration": true, // 生成声明文件
+    "removeComments": true, // 移除注释
+    "target": "ES2023",
+    "sourceMap": false, // 生成 sourcemap
+    "incremental": true, // 增量构建
+    "skipLibCheck": true, // 跳过库检查
+    "strictNullChecks": true, // 严格空检查
+    "forceConsistentCasingInFileNames": true, // 强制一致的文件名大小写
+    "noImplicitAny": false, // 禁止隐式 any
+    "noFallthroughCasesInSwitch": false, // 禁止 switch 语句中的 fallthrough 情况
+    "strictBindCallApply": false,
+  }
+}

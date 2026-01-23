@@ -1,0 +1,38 @@
+{
+  "extends": "@workspace/tsconfig/tsconfig.base.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist",
+    "baseUrl": "../..",
+    "paths": {
+      "@app/common": [
+        "apps/server/libs/common/src"
+      ],
+      "@app/common/*": [
+        "apps/server/libs/common/src/*"
+      ],
+      "@app/library": [
+        "apps/server/libs/library/src"
+      ],
+      "@app/library/*": [
+        "apps/server/libs/library/src/*"
+      ],
+      "@workspace/common": [
+        "packages/common/src"
+      ],
+      "@workspace/common/*": [
+        "packages/common/src/*"
+      ],
+      "@workspace/eslint": [
+        "packages/eslint"
+      ],
+      "@workspace/eslint/*": [
+        "packages/eslint/*"
+      ]
+    }
+  }
+}
