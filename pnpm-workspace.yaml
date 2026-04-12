@@ -1,4 +1,20 @@
 onlyBuiltDependencies:
+  - '"'
+  - ','
+  - /
+  - '@'
   - '@nestjs/core'
-  - '@scarf/scarf'
-  - unrs-resolver
+  - '@prisma/engines'
+  - '['
+  - ']'
+  - a
+  - better-sqlite3
+  - e
+  - g
+  - i
+  - m
+  - n
+  - p
+  - prisma
+  - r
+  - s

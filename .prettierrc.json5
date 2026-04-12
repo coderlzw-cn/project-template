@@ -1,0 +1,10 @@
+{
+  "singleQuote": true, // 使用单引号而非双引号
+  "trailingComma": "all", // 在 ES5 有效的地方（对象、数组等）强制使用尾随逗号，方便 Git diff
+  "printWidth": 160, // 单行代码最大字符数，设置为 160 适合宽屏显示器，减少不必要的折行
+  "tabWidth": 2, // 缩进使用 2 个空格，这是 JS/TS 社区的标准
+  "semi": true, // 语句末尾自动添加分号，避免自动分号插入机制带来的潜在错误
+  "plugins": [
+    "prettier-plugin-organize-imports" // (推荐) 自动整理导入顺序插件
+  ]
+}
