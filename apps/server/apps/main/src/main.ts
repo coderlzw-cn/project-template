@@ -9,6 +9,11 @@ import { RequestLoggerMiddleware } from '@app/common/middleware/request-logger.m
 import { join } from 'node:path';
 import { TransformInterceptor } from '@app/common/interceptors/transform';
 import { WsAdapter } from '@nestjs/platform-ws';
+import { USER } from '@workspace/common/constants/enum.constant';
+import { getStr } from '@workspace/common/utils/string';
+console.log(USER.ADMIN);
+
+console.log(getStr(12));
 
 /**
  * 启动 Swagger
@@ -98,3 +103,61 @@ process.on('unhandledRejection', (reason: Error) => {
 process.on('uncaughtException', (error: Error) => {
   console.error('未捕获的异常：', error.message);
 });
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { type PipeOptions } from 'node:stream';
+
+export interface ReadStreamEvents {
+  onOpen?: (fd: number) => void; // 文件描述符打开
+  onReady?: () => void; // 流准备就绪
+  onData?: (chunk: Buffer | string) => void; // 读取到数据
+  onReadable?: () => void; // 有数据可读
+  onPause?: () => void; // 流暂停
+  onResume?: () => void; // 流恢复
+  onError?: (err: Error) => void; // 发生错误
+  onEnd?: () => void; // 数据读取完毕（未关闭）
+  onClose?: () => void; // 流彻底关闭
+}
+
+const readStream = fs.createReadStream('/Users/liangzhiwei/开发/project-template/package.json');
+readStream.on('open', (a,b)=>{
+  console.log(a,b);
+});
+readStream.on('ready', (a, b) => {
+  console.log(a, b);
+});
+readStream.on('data', (a, b) => {
+  console.log(a, b);
+});
+// readStream.on('readable', (a, b) => {
+//   console.log(a, b);
+// });
+// readStream.on('pause', (a, b) => {
+//   console.log(a, b);
+// });
+// readStream.on('resume', (a, b) => {
+//   console.log(a, b);
+// });
+readStream.on('error', (a, b) => {
+  console.log(a, b);
+});
+readStream.on('end', (a, b) => {
+  console.log(a, b);
+});
+
+readStream.on('close', (a, b) => {
+  console.log(a, b);
+});
+
+//
+// readStream.on('end', (p) => {
+//   console.log(p);
+//   // 注意：这里不直接 resolve，通常等待 close 事件确保资源释放
+//   if (events.onEnd) events.onEnd();
+// });
+//
+// readStream.on('close', () => {
+//   if (events.onClose) events.onClose();
+//   resolve();
+// });

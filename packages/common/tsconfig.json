@@ -1,6 +1,16 @@
 {
+    "extends": "@workspace/tsconfig/tsconfig.base.json",
     "compilerOptions": {
+        "module": "es2015",
+        "moduleResolution": "bundler",
+        "baseUrl": ".",
+        "outDir": "dist"
     },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "dist"]
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

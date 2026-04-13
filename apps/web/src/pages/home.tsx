@@ -1,6 +1,6 @@
 import { fetchUsersApi } from "@/api/users";
 import WSClient from "@/api/websocket";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 
 const wsClient = new WSClient<{
@@ -23,7 +23,7 @@ wsClient.on("close", () => {
 });
 
 wsClient.on("error", (error) => {
-    console.error("WebSocket 错误", error.message);
+    console.error("WebSocket 错误", error instanceof Error?error.message: "");
 });
 
 
@@ -41,7 +41,7 @@ export default function Home() {
 
     const handlePromiseSend = async () => {
         const newCount = count++;
-        const response = await wsClient.sendWithAck<any, { event: string, description: string, count: number }>({ event: "createEvent", data: { description: "test", count: newCount } });
+        const response = await wsClient.sendWithAck<any, { event: string, description: string, count: number }>({ event: "createEvent",  description: "test", count: newCount });
         console.log("count: ", newCount, "response: ", response.description, response.count);
     }
 

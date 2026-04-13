@@ -6,6 +6,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Bundler",
+    "target": "es2015",
     "outDir": "dist",
     "baseUrl": "../..",
     "paths": {

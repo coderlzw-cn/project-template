@@ -1,12 +1,12 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CurrentUser } from '@app/common/decorations/auth-user.decoratior';
-import { type User } from '../generated/prisma/client';
+import { type User } from '../generated/prisma/browser';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get('me')
   getMe(@CurrentUser() user: User) {

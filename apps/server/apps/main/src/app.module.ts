@@ -6,36 +6,36 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
+import { UserModule } from '../../user/src/user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './events/events.module';
 
 const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), `.env.production`), path.join(process.cwd(), `.env.development`)];
 
-@Module({
-  imports: [
-    UdpModule.register({
-      debug: false,
-      servers: [
-        { name: 'LOCAL_SERVER_A', port: 7001 },
-        { name: 'LOCAL_SERVER_B', port: 7002 },
-      ],
-      clients: [
-        { name: 'REMOTE_A', host: '127.0.0.1', port: 8001 },
-        { name: 'REMOTE_B', host: '127.0.0.1', port: 8002 },
-      ],
-    }),
-    EventsModule,
-  ],
-})
-export class NestUdpModule {
-  constructor(private readonly udpService: UdpService) {
-    setInterval(() => {
-      void this.udpService.send('REMOTE_A', 'Hello World!');
-      void this.udpService.send('LOCAL_SERVER_B', 'Hello World!');
-    }, 2000);
-  }
-}
+// @Module({
+//   imports: [
+//     UdpModule.register({
+//       debug: false,
+//       servers: [
+//         { name: 'LOCAL_SERVER_A', port: 7001 },
+//         { name: 'LOCAL_SERVER_B', port: 7002 },
+//       ],
+//       clients: [
+//         { name: 'REMOTE_A', host: '127.0.0.1', port: 8001 },
+//         { name: 'REMOTE_B', host: '127.0.0.1', port: 8002 },
+//       ],
+//     }),
+//     EventsModule,
+//   ],
+// })
+// export class NestUdpModule {
+//   constructor(private readonly udpService: UdpService) {
+//     setInterval(() => {
+//       void this.udpService.send('REMOTE_A', 'Hello World!');
+//       void this.udpService.send('LOCAL_SERVER_B', 'Hello World!');
+//     }, 2000);
+//   }
+// }
 
 @Module({
   imports: [
@@ -114,7 +114,7 @@ export class NestUdpModule {
     // ScheduleModule.forRoot({
     //   // isGlobal: true,
     // }),
-    UserModule,
+    // UserModule,
     // 在使用 UDP 模块时，必须开启 EventEmitterModule.forRoot()
     EventEmitterModule.forRoot(), // 必须开启
     // NestUdpModule,
@@ -123,4 +123,4 @@ export class NestUdpModule {
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

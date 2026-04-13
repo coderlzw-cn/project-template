@@ -24,9 +24,16 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-
+     
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+       "@workspace/common": [
+        "../../packages/common/src"
+      ],
+      "@workspace/common/*": [
+        "../../packages/common/src/*"
+      ],
     }
   },
   "include": ["src"]

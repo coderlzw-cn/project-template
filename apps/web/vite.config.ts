@@ -17,6 +17,8 @@ import viteCompression from 'vite-plugin-compression';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 // React Dev Inspector 插件：用于在开发过程中检查React组件树和状态
 import { inspectorServer } from '@react-dev-inspector/vite-plugin';
+// 
+import tsconfigPaths from 'vite-tsconfig-paths'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -38,7 +40,7 @@ export default defineConfig({
       open: false, // 打包完成后自动打开分析页面
       gzipSize: true, // 显示gzip压缩后的体积
       brotliSize: true, // 显示brotli压缩后的体积
-      sourcemap: true, // 结合sourcemap展示更详细的模块信息
+      sourcemap: false, // 结合sourcemap展示更详细的模块信息
     }),
     // 配置本地HTTPS开发环境
     // basicSsl({
@@ -56,11 +58,13 @@ export default defineConfig({
       },
     }),
     ViteImageOptimizer({}),
+    tsconfigPaths()
   ],
   resolve: {
     alias: {
       '@': path.join(__dirname, 'src'),
     },
+    // extensions: ['.ts', '.tsx', '.jsx', '.js', '.json'],
   },
   server: {
     host: 'example.dev',
