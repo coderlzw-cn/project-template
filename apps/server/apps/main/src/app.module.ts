@@ -3,14 +3,12 @@ import { UdpModule, UdpService } from '@app/library/udp';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from '../../user/src/user/user.module';
+import { appConfig, envFilePath, validateEnv } from './config/app.config';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './events/events.module';
-
-const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), `.env.production`), path.join(process.cwd(), `.env.development`)];
 
 // @Module({
 //   imports: [
@@ -40,8 +38,13 @@ const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), 
 @Module({
   imports: [
     NestHealthModule,
-    PrismaModule,
-    ConfigModule.forRoot({ isGlobal: true, cache: false, envFilePath }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      load: [appConfig],
+      envFilePath,
+      validate: validateEnv,
+    }),
     // NestRabbitmqModule.forRoot({
     //   // 交换机配置
     //   exchanges: [
@@ -123,4 +126,4 @@ const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), 
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

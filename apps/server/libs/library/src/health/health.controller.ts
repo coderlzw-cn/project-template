@@ -1,4 +1,4 @@
-import { Public } from '@app/common/decorations/public.decorator';
+import { Public } from '@app/common/decorators/public.decorator';
 import { Controller, Get, OnModuleInit, Req } from '@nestjs/common';
 import { AbstractHttpAdapter, HttpAdapterHost } from '@nestjs/core';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
