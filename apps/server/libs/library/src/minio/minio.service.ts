@@ -1,8 +1,8 @@
-import { Injectable, Logger, Inject, Optional, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
+import type { BucketItemFromList, BucketItemStat } from 'minio';
 import * as Minio from 'minio';
-import type { BucketItemStat, BucketItemFromList } from 'minio';
 import type { Readable } from 'stream';
-import type { MinioModuleOptions, UploadOptions, DownloadOptions, PresignedUrlOptions, ListObjectsOptions } from './minio.interface';
+import type { DownloadOptions, ListObjectsOptions, MinioModuleOptions, PresignedUrlOptions, UploadOptions } from './minio.interface';
 import { MODULE_OPTIONS_TOKEN } from './minio.module-definition';
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { MinioService } from './minio.service';
 import { ConfigurableModuleClass } from './minio.module-definition';
+import { MinioService } from './minio.service';
 
 @Module({
   providers: [MinioService],

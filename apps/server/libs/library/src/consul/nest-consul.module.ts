@@ -1,6 +1,6 @@
-import { Module, Global } from '@nestjs/common';
-import { ConsulService } from './consul.service';
+import { Global, Module } from '@nestjs/common';
 import { ConfigurableModuleClass } from './consul.module-definition';
+import { ConsulService } from './consul.service';
 
 @Global()
 @Module({

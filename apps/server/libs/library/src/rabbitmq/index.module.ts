@@ -1,4 +1,4 @@
-import { RabbitMQModule, RabbitMQConfig } from '@golevelup/nestjs-rabbitmq';
+import { RabbitMQConfig, RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { DynamicModule, Module } from '@nestjs/common';
 import { RabbitmqService } from './rabbitmq.service';
 

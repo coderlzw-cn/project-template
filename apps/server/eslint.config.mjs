@@ -1,50 +1,35 @@
-// import nest from '@workspace/eslint/nest';
-
-// /** @type {import("eslint").Linter.Config} */
-// export default nest;
-
+// @ts-check
+import eslint from '@eslint/js';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
-import { defineConfig } from 'eslint/config';
-import { baseConfig, globalIgnoresReg } from './base.js';
+import tseslint from 'typescript-eslint';
 
-export default defineConfig([
-    globalIgnoresReg,
-    {
-        ignores: ['webpack.config.cjs']
+export default tseslint.config(
+  {
+    ignores: ['eslint.config.mjs'],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  eslintPluginPrettierRecommended,
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      sourceType: 'commonjs',
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
-    ...baseConfig,
-    {
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                ...globals.jest,
-            },
-            sourceType: 'commonjs',
-            parserOptions: {
-                projectService: true,
-                tsconfigRootDir: import.meta.dirname,
-            },
-        },
+  },
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      "prettier/prettier": ["error", { endOfLine: "auto" }],
     },
-    {
-        rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-floating-promises': 'warn',
-            '@typescript-eslint/no-unsafe-argument': 'warn',
-            "turbo/no-undeclared-env-vars": "off",
-            "@typescript-eslint/no-unused-vars": [
-                "error",
-                {
-                    "vars": "all",
-                    "args": "after-used",
-                    "ignoreRestSiblings": true,
-                    // 关键配置：使用正则匹配下划线开头的名称
-                    "varsIgnorePattern": "^_",
-                    "argsIgnorePattern": "^_",
-                    "destructuredArrayIgnorePattern": "^_",
-                    "caughtErrorsIgnorePattern": "^_"
-                }
-            ]
-        },
-    }
-])
+  },
+);

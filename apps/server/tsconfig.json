@@ -1,40 +1,35 @@
 {
-  "extends": "@workspace/tsconfig/tsconfig.base.json",
   "compilerOptions": {
+    // "module": "ESNext",
+    // "moduleResolution": "bundler",
     "esModuleInterop": true,
     "isolatedModules": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+
+    "declaration": true,
+    "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "Bundler",
-    "target": "es2015",
-    "outDir": "dist",
-    "baseUrl": "../..",
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    // "ignoreDeprecations": "6.0",
+    "baseUrl": "./",
+    // "rootDir": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "strictPropertyInitialization": false,
     "paths": {
-      "@app/common": [
-        "apps/server/libs/common/src"
-      ],
-      "@app/common/*": [
-        "apps/server/libs/common/src/*"
-      ],
-      "@app/library": [
-        "apps/server/libs/library/src"
-      ],
-      "@app/library/*": [
-        "apps/server/libs/library/src/*"
-      ],
-      "@workspace/common": [
-        "packages/common/src"
-      ],
-      "@workspace/common/*": [
-        "packages/common/src/*"
-      ],
-      "@workspace/eslint": [
-        "packages/eslint"
-      ],
-      "@workspace/eslint/*": [
-        "packages/eslint/*"
-      ]
+      "@app/common/*": ["./libs/common/src/*"],
+      "@app/library/*": ["./libs/library/src/*"]
     }
   }
 }

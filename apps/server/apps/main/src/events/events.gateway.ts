@@ -1,14 +1,14 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
-import { EventsService } from './events.service';
+import { Logger } from '@nestjs/common';
+import { MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { type Server, WebSocket } from 'ws';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import type { Server, WebSocket } from 'ws';
-import { Logger } from '@nestjs/common';
+import { EventsService } from './events.service';
 
 @WebSocketGateway({ path: '/demo', cors: true })
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(EventsGateway.name);
-  constructor(private readonly eventsService: EventsService) { }
+  constructor(private readonly eventsService: EventsService) {}
 
   @WebSocketServer()
   server: Server;
@@ -24,7 +24,12 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   }
 
   handleConnection(client: WebSocket) {
-    client.send(JSON.stringify({ event: 'connect', data: { message: 'Hello from server' } }));
+    client.send(
+      JSON.stringify({
+        event: 'connect',
+        data: { message: 'Hello from server' },
+      }),
+    );
   }
 
   handleDisconnect(_client: WebSocket) {

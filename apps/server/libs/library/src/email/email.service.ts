@@ -1,6 +1,6 @@
-import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { SendMailOptions } from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 import type * as Mail from 'nodemailer/lib/mailer';
 import type { EmailModuleOptions, SendEmailOptions, SentMessageInfo } from './email.interface';
 import { MODULE_OPTIONS_TOKEN } from './email.module-definition';

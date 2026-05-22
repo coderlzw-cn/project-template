@@ -1,129 +1,58 @@
 import { NestHealthModule } from '@app/library/health/nest-health.module';
-import { UdpModule, UdpService } from '@app/library/udp';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from '../../user/src/user/user.module';
-import { appConfig, envFilePath, validateEnv } from './config/app.config';
-import { PrismaModule } from './prisma/prisma.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import path from 'path';
+import { appConfig, jwtConfig } from './config/app.config';
 import { EventsModule } from './events/events.module';
-
-// @Module({
-//   imports: [
-//     UdpModule.register({
-//       debug: false,
-//       servers: [
-//         { name: 'LOCAL_SERVER_A', port: 7001 },
-//         { name: 'LOCAL_SERVER_B', port: 7002 },
-//       ],
-//       clients: [
-//         { name: 'REMOTE_A', host: '127.0.0.1', port: 8001 },
-//         { name: 'REMOTE_B', host: '127.0.0.1', port: 8002 },
-//       ],
-//     }),
-//     EventsModule,
-//   ],
-// })
-// export class NestUdpModule {
-//   constructor(private readonly udpService: UdpService) {
-//     setInterval(() => {
-//       void this.udpService.send('REMOTE_A', 'Hello World!');
-//       void this.udpService.send('LOCAL_SERVER_B', 'Hello World!');
-//     }, 2000);
-//   }
-// }
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { PrismaModule } from './prisma/prisma.module';
+const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), `.env.production`), path.join(process.cwd(), `.env.development`)];
 
 @Module({
   imports: [
     NestHealthModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      cache: true,
-      load: [appConfig],
-      envFilePath,
-      validate: validateEnv,
+    PrismaModule,
+    ConfigModule.forRoot({ isGlobal: true, cache: false, envFilePath, load: [appConfig, jwtConfig] }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000, // 时间窗口：60,000 毫秒 (1分钟)
+          limit: 100, // 限制次数：每个 IP 在 1 分钟内最多 100 次请求
+        },
+      ],
     }),
-    // NestRabbitmqModule.forRoot({
-    //   // 交换机配置
-    //   exchanges: [
-    //     {
-    //       // 交换机名称
-    //       name: `my_exchanges_test1`,
-    //       // 交换机类型
-    //       type: 'direct',
-    //       options: { durable: false },
-    //     },
-    //   ],
-    //   // 连接的url
-    //   uri: 'amqp://admin:admin@192.168.5.158:5672',
-    //   connectionInitOptions: { wait: false },
-    //   enableDirectReplyTo: false,
-    //   prefetchCount: 300,
-    //   defaultSubscribeErrorBehavior: MessageHandlerErrorBehavior.NACK,
-    // }),
-    // NestConsulModule.forRoot({
-    //   host: '192.168.5.158',
-    //   port: 8500,
-    //   protocol: 'http',
-    //   register: true,
-    //   service: {
-    //     ID: 'my-service-1',
-    //     Name: 'my-service',
-    //     Address: '192.168.5.182',
-    //     Port: 3000,
-    //     Tags: ['api', 'v1'],
-    //     Check: {
-    //       HTTP: 'http://192.168.5.182:3000/api/v1/health/http',
-    //       Interval: '10s',
-    //       Timeout: '3s',
-    //       DeregisterCriticalServiceAfter: '30s',
-    //     },
-    //   },
-    // }),
-    // NestMinioModule.forRoot({
-    //   endPoint: '192.168.200.2',
-    //   port: 9000,
-    //   accessKey: 'suMq9tnyI1vkhvI0NKzz',
-    //   secretKey: 'wCsLRoT1HCi7tP0jbPQwcDXKf9we1gZRdauDyFVp',
-    //   useSSL: false,
-    // }),
-    // IoredisModule.forRoot({
-    //   host: '192.168.5.158',
-    //   port: 6379,
-    //   password: 'your-password',
-    //   db: 0,
+    CacheModule.register({
+      isGlobal: true, // 设置为全局模块
+      ttl: 5, // 默认缓存时间 5 秒
+      max: 100, // 内存中最大缓存条目数
+    }),
+    // NestIoredisModule.forRoot({
+    //   type: 'url',
+    //   url: process.env.REDIS_URL!, // redis://:pass@host:6379/0
     //   keyPrefix: 'app:',
-    //   connectTimeout: 10000,
-    //   lazyConnect: false,
     // }),
-    // NestEmailModule.forRoot({
-    //   host: 'smtp.qq.com',
-    //   port: 587,
-    //   secure: false,
-    //   auth: {
-    //     user: 'coderlzw@foxmail.com',
-    //     pass: 'mgnevlqbgmrtcafh',
-    //   },
-    //   from: 'coderlzw@foxmail.com',
-    //   fromName: '测试APP',
-    // }),
-    // ThrottlerModule.forRoot({
-    //   ttl: 60, // 时间窗口：60 秒
-    //   limit: 10, // 最大请求次数：10 次
-    //   storage: 'memory',
-    // }),
-    // ScheduleModule.forRoot({
-    //   // isGlobal: true,
-    // }),
-    // UserModule,
-    // 在使用 UDP 模块时，必须开启 EventEmitterModule.forRoot()
-    EventEmitterModule.forRoot(), // 必须开启
-    // NestUdpModule,
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     EventsModule,
+    AuthModule,
+    UserModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
