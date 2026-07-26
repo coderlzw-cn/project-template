@@ -31,14 +31,27 @@ export interface PaginationVoValues<T> {
 }
 
 export class PaginationVo<T> {
+  /**
+   * 手动构造字段完整的分页响应，避免遗漏总页数。
+   *
+   * @example
+   * return PaginationVo.build(list, total, page, pageSize);
+   */
+  static build<T>(list: T[], total: number, page: number, pageSize: number): PaginationVo<T> {
+    return new PaginationVo({ list, total, page, pageSize });
+  }
+
   constructor(values: PaginationVoValues<T>) {
-    const pageSize = Math.max(values.pageSize, 1);
+    const total = Number.isInteger(values.total) && values.total >= 0 ? values.total : 0;
+    const page = Number.isInteger(values.page) && values.page > 0 ? values.page : 1;
+    const pageSize = Number.isInteger(values.pageSize) && values.pageSize > 0 ? values.pageSize : values.list.length || 10;
+    const pages = Number.isInteger(values.pages) && (values.pages ?? -1) >= 0 ? values.pages! : Math.ceil(total / pageSize);
 
     this.list = values.list;
-    this.total = values.total;
-    this.page = values.page;
+    this.total = total;
+    this.page = page;
     this.pageSize = pageSize;
-    this.pages = values.pages ?? Math.ceil(values.total / pageSize);
+    this.pages = pages;
   }
 
   @ApiProperty({ description: '列表', type: Object, isArray: true })

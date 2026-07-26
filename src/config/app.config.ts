@@ -7,6 +7,7 @@ export const appConfig = registerAs('app', () => ({
   host: getEnvStr('HOST', '127.0.0.1'),
   port: getEnvNum('PORT', 3000),
   prefixApi: getEnvStr('PREFIX_API', 'api'),
+  env: getEnvStr('NODE_ENV', 'development'),
 }));
 
 export const jwtConfig = registerAs('jwt', () => ({

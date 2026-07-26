@@ -59,16 +59,46 @@ $ pnpm run test:cov
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Docker Compose
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Build and start the production container:
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The service is available at `http://localhost:3000/api`, and its liveness endpoint is
+`http://localhost:3000/health/live`.
+
+To use a different host port, set `APP_PORT` when starting Compose:
+
+```bash
+APP_PORT=8080 docker compose up -d --build
+```
+
+View logs or stop the service:
+
+```bash
+docker compose logs -f app
+docker compose down
+```
+
+### Docker
+
+Build and run the image without Compose:
+
+```bash
+docker build -t nestjs-webpack-template .
+docker run --init --rm -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e HOST=0.0.0.0 \
+  nestjs-webpack-template
+```
+
+The image uses a multi-stage build and runs the application as the unprivileged `node`
+user. Runtime configuration can be supplied through environment variables; see
+`.env.example` for the supported application defaults. Secret files and `.env` files
+are excluded from the Docker build context.
 
 ## Resources
 

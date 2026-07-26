@@ -1,3 +1,5 @@
+import type { SupportedLocale } from '@/i18n/i18n';
+
 declare global {
   namespace Express {
     interface CurrentUser {
@@ -8,6 +10,7 @@ declare global {
       user?: CurrentUser;
       clientIp?: string;
       requestId: string;
+      locale: SupportedLocale;
     }
   }
 }

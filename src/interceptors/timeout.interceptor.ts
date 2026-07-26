@@ -1,17 +1,41 @@
+import { MAX_TIMEOUT_MS, SKIP_TIMEOUT_KEY, TIMEOUT_METADATA_KEY } from '@/decorators/timeout.decorator';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, RequestTimeoutException } from '@nestjs/common';
-import { Observable, throwError, TimeoutError } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
+import { SSE_METADATA } from '@nestjs/common/constants';
+import { Reflector } from '@nestjs/core';
+import type { Request } from 'express';
+import { Observable, throwError, timeout } from 'rxjs';
+import { translate } from '@/i18n/i18n';
+
+const DEFAULT_TIMEOUT_MS = 10_000;
 
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  constructor(private readonly reflector: Reflector) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    if (context.getType() !== 'http') {
+      return next.handle();
+    }
+
+    const handler = context.getHandler();
+    const controller = context.getClass();
+    const skipped = this.reflector.getAllAndOverride<boolean>(SKIP_TIMEOUT_KEY, [handler, controller]);
+    const isSse = this.reflector.get<boolean>(SSE_METADATA, handler);
+    if (skipped || isSse) {
+      return next.handle();
+    }
+
+    const configuredTimeout = this.reflector.getAllAndOverride<number>(TIMEOUT_METADATA_KEY, [handler, controller]);
+    const timeoutMs = Number.isInteger(configuredTimeout) && (configuredTimeout ?? 0) > 0 && (configuredTimeout ?? 0) <= MAX_TIMEOUT_MS ? configuredTimeout! : DEFAULT_TIMEOUT_MS;
+    const locale = context.switchToHttp().getRequest<Request>().locale;
+
     return next.handle().pipe(
-      timeout(10000), // 设置 10 秒超时
-      catchError((err) => {
-        if (err instanceof TimeoutError) {
-          return throwError(() => new RequestTimeoutException('请求超时'));
-        }
-        return throwError(() => err);
+      timeout({
+        // HTTP 请求只关心首次响应；SSE 已在上方跳过，不应对后续发射间隔重复计时。
+        first: timeoutMs,
+        with: () => {
+          return throwError(() => new RequestTimeoutException(translate(locale, 'requestTimeout', { timeoutMs })));
+        },
       }),
     );
   }

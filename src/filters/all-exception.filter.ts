@@ -3,7 +3,31 @@ import { HttpAdapterHost } from '@nestjs/core';
 import type { Request } from 'express';
 import { payloadFromHttpException, sanitizePayloadForProduction } from './http-exception-payload';
 import { isProduction } from '@/utils/env';
-import { ExceptionVo } from '@/exception.vo';
+import { translate } from '@/i18n/i18n';
+
+interface IValues {
+  message: string | string[];
+  status: number;
+  timestamp: number;
+  path: string;
+  method: string;
+  error?: string;
+}
+export class ExceptionVo {
+  static build(values: IValues) {
+    const body: Record<string, unknown> = {
+      status: values.status,
+      timestamp: values.timestamp,
+      path: values.path,
+      method: values.method,
+      message: values.message,
+    };
+    if (values.error !== undefined) {
+      body.error = values.error;
+    }
+    return body;
+  }
+}
 
 @Catch()
 export class CatchEverythingFilter implements ExceptionFilter {
@@ -20,13 +44,13 @@ export class CatchEverythingFilter implements ExceptionFilter {
     let message: string | string[];
     let error: string | undefined;
     if (exception instanceof HttpException) {
-      const payload = sanitizePayloadForProduction(httpStatus, payloadFromHttpException(exception));
+      const payload = sanitizePayloadForProduction(httpStatus, payloadFromHttpException(exception), request.locale);
       message = payload.message;
       error = payload.error;
     } else if (exception instanceof Error) {
-      message = isProduction ? '服务器错误，请稍后重试' : exception.message;
+      message = isProduction ? translate(request.locale, 'internalServerError') : exception.message;
     } else {
-      message = '服务器错误，请稍后重试';
+      message = translate(request.locale, 'internalServerError');
     }
 
     const path = httpAdapter.getRequestUrl(request) as string;

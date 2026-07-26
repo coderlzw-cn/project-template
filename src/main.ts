@@ -1,4 +1,4 @@
-import { INestApplication, Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { INestApplication, Logger, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpAdapterHost, NestApplication, NestFactory, Reflector } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -7,17 +7,27 @@ import { json, urlencoded, type Application } from 'express';
 import helmet from 'helmet';
 import { join } from 'node:path';
 import { AppModule } from './app.module';
+import { appConfig } from './config/app.config';
 import { CatchEverythingFilter } from './filters/all-exception.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { BigIntInterceptor } from './interceptors/bigInt.interceptor';
+import { AuditLogInterceptor } from './interceptors/audit-log.interceptor';
+import { ExcludeSensitiveInterceptor } from './interceptors/exclude-sensitive.interceptor';
+import { SerializeInterceptor } from './interceptors/serialize.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { IpAccessControlMiddleware } from './middleware/ip-access-control.middleware';
+import { LocaleMiddleware } from './middleware/locale.middleware';
+import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
+import { RequestContextMiddleware } from './middleware/request-context.middleware';
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
-import { appConfig } from './config/app.config';
-import { RequestContextMiddleware } from './middleware/request-context.middleware';
-import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
-import { IpAccessControlMiddleware } from './middleware/ip-access-control.middleware';
+
+declare const module: {
+  hot?: {
+    accept(): void;
+    dispose(callback: () => Promise<void>): void;
+  };
+};
 
 const swaggerBootstrap = (app: INestApplication, dev: boolean = false) => {
   if (!dev) return;
@@ -64,18 +74,25 @@ async function bootstrap() {
     logger: isProduction ? ['log', 'error', 'warn'] : ['debug', 'log', 'verbose', 'warn', 'error'],
     cors: true,
     // 如果你的 AppModule 初始化非常慢（比如连接数据库很久），这期间产生的日志可能会丢失或乱序。开启 bufferLogs 可以让 Nest 收集所有启动日志，直到 Logger 准备就绪后再一次性打印。
-    // bufferLogs: true,
+    bufferLogs: true,
   });
   const httpAdapterHost = app.get(HttpAdapterHost);
   const appConfiguration = appConfig();
   // 获取底层 HTTP 适配器 (Express)
-  const httpAdapter = app.getHttpAdapter().getInstance();
+  // const httpAdapter = app.getHttpAdapter().getInstance();
+  // const expressApp = app.getHttpAdapter().getInstance<Application>();
+  const reflector = app.get(Reflector);
 
   app.use(
     helmet({
       contentSecurityPolicy: isProduction ? undefined : false, // 开发环境禁用 CSP 以便 Swagger 正常显示
     }),
   );
+
+  // 请求上下文和访问日志需早于 Body Parser，确保非法 JSON 请求也有 requestId 和访问日志。
+  app.use(RequestContextMiddleware);
+  app.use(LocaleMiddleware);
+  app.use(RequestLoggerMiddleware);
 
   // 限制请求体大小
   app.use(json({ limit: '10mb' }));
@@ -94,12 +111,19 @@ async function bootstrap() {
   expressApp.set('trust proxy', 1); // 1 表示信任第一层代理
 
   // 全局路由前缀
-  app.setGlobalPrefix(appConfiguration.prefixApi);
+  app.setGlobalPrefix(appConfiguration.prefixApi, {
+    exclude: [
+      { path: 'health', method: RequestMethod.ALL },
+      { path: 'health/{*path}', method: RequestMethod.ALL },
+    ],
+  });
 
   // 注册全局响应转换拦截器（需 Reflector 以识别 @HttpCode、@SkipTransform 等元数据）
-  app.useGlobalInterceptors(new TimeoutInterceptor());
-  app.useGlobalInterceptors(new BigIntInterceptor());
-  app.useGlobalInterceptors(new TransformInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(new AuditLogInterceptor(reflector));
+  app.useGlobalInterceptors(new TimeoutInterceptor(reflector));
+  app.useGlobalInterceptors(new ExcludeSensitiveInterceptor(reflector));
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+  app.useGlobalInterceptors(new SerializeInterceptor(reflector));
 
   // 开放静态资源
   app.useStaticAssets(join(process.cwd(), 'resources/images'), {
@@ -126,12 +150,8 @@ async function bootstrap() {
   app.useGlobalFilters(new CatchEverythingFilter(httpAdapterHost));
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // 中间件
-  app.use(RequestLoggerMiddleware);
-  app.use(RequestContextMiddleware);
-
-  // app.use(MaintenanceModeMiddleware({ enabled: true }));
-  // app.use(IpAccessControlMiddleware({ allowList: ['192.333.393.23'] }));
+  app.use(MaintenanceModeMiddleware({ enabled: false }));
+  app.use(IpAccessControlMiddleware({ allowList: ['127.0.0.1'], excludePaths: ['/health'] }));
 
   // 使用 WebSocket 适配器
   app.useWebSocketAdapter(new WsAdapter(app));
@@ -146,6 +166,11 @@ async function bootstrap() {
   Logger.log(`Environment: ${getEnvStr('NODE_ENV')}`, 'Bootstrap');
   Logger.log(`Application is running on: ${await app.getUrl()}${appConfiguration.prefixApi}`, 'Bootstrap');
   Logger.log(`Swagger is running on: ${await app.getUrl()}/swagger`, 'Bootstrap');
+
+  if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => app.close());
+  }
 }
 void bootstrap();
 

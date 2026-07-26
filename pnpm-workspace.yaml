@@ -1,2 +1,6 @@
+allowBuilds:
+  '@scarf/scarf': true
+  protobufjs: true
+  unrs-resolver: true
 onlyBuiltDependencies:
   - unrs-resolver

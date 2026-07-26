@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { NextFunction, type Request, Response } from 'express';
+import { translate } from '@/i18n/i18n';
 
 /**
  * 维护模式 middleware。
@@ -22,7 +23,6 @@ export function MaintenanceModeMiddleware(
   } = {},
 ) {
   const allowPaths = options.allowPaths ?? ['/health', '/swagger'];
-  const message = options.message ?? '系统维护中，请稍后再试';
 
   return (req: Request, res: Response, next: NextFunction) => {
     if (!options.enabled || allowPaths.some((path) => req.originalUrl.startsWith(path))) {
@@ -32,7 +32,7 @@ export function MaintenanceModeMiddleware(
 
     res.status(HttpStatus.SERVICE_UNAVAILABLE).json({
       statusCode: HttpStatus.SERVICE_UNAVAILABLE,
-      message,
+      message: options.message ?? translate(req.locale, 'maintenance'),
       timestamp: new Date().toISOString(),
       path: req.originalUrl,
       method: req.method,

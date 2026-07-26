@@ -5,11 +5,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import path from 'path';
-import { appConfig, jwtConfig } from './config/app.config';
-import { UserModule } from './user/user.module';
-const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), `.env.production`), path.join(process.cwd(), `.env.development`)];
 
+import { appConfig } from './config/app.config';
+import { HealthModule } from './infrastructure/health/health.module';
+import { UserModule } from './user/user.module';
+import { InfluxdbModule } from './infrastructure/influxdb';
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+
+const envFilePath = [`.env.${nodeEnv}.local`, `.env.${nodeEnv}`, '.env.local', '.env'];
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: false, envFilePath, load: [appConfig] }),
@@ -28,7 +31,15 @@ const envFilePath = [path.join(process.cwd(), '.env'), path.join(process.cwd(), 
     }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
+    HealthModule,
     UserModule,
+    InfluxdbModule.forRoot({
+      isGlobal: true,
+      host: 'http://197.0.0.1',
+      token: 'demo',
+      database: 'demo',
+      logging: true,
+    }),
   ],
   providers: [
     {

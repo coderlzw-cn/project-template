@@ -118,5 +118,5 @@ export function getEnvInt(key: string, defaultValue?: number, radix = 10): numbe
   return Number.isNaN(parsed) ? defaultValue : parsed;
 }
 
-export const isDevelopment = getEnvStr('ENV_NODE', 'development') === 'development';
-export const isProduction = getEnvStr('ENV_NODE', 'development') === 'production';
+export const isDevelopment = getEnvStr('NODE_ENV', 'development') === 'development';
+export const isProduction = getEnvStr('NODE_ENV', 'development') === 'production';
