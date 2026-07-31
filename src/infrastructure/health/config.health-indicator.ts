@@ -1,7 +1,7 @@
-import { appConfig } from '@/config/app.config';
 import { Inject, Injectable } from '@nestjs/common';
 import * as config from '@nestjs/config';
 import { HealthIndicatorService } from '@nestjs/terminus';
+import { appConfig } from '../../config/app.config';
 
 /** 检查应用核心配置的最终解析结果，不在响应中暴露配置值。 */
 @Injectable()
@@ -15,7 +15,7 @@ export class ConfigHealthIndicator {
   isHealthy(key: string) {
     const host = this.appconfiguration.host;
     const port = this.appconfiguration.port;
-    const prefixApi = this.appconfiguration.prefixApi;
+    const prefixApi = this.appconfiguration.apiPrefix;
     const nodeEnv = this.appconfiguration.env;
 
     const checks = [

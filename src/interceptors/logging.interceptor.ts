@@ -63,7 +63,7 @@ export class LoggingInterceptor implements NestInterceptor {
   ) {
     const forwardedFor = request.headers['x-forwarded-for']?.toString().split(',')[0];
     const ip = forwardedFor ?? request.ip ?? request.socket?.remoteAddress ?? '-';
-    const userAgent = request.headers['user-agent'] ?? '-';
+    const userAgent = request.headers['user-agent']?.toString() ?? '-';
     const requestId = request.requestId ?? '-';
     const message = `requestId=${requestId} ip=${ip} method=${request.method} url=${request.originalUrl ?? request.url} status=${statusCode} duration=${durationMs}ms ua="${userAgent}"`;
 

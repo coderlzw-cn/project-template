@@ -1,11 +1,7 @@
-import { Controller, Get, Req } from '@nestjs/common';
-import { UserService } from './user.service';
+import { Controller, Get } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
-import { type Request } from 'express';
-import { SensitiveFields } from '@/decorators/sensitive.decorator';
-import { Serialize } from '@/decorators/serialize.decorator';
-import { Expose, Transform } from 'class-transformer';
-
+import { Expose } from 'class-transformer';
+import { UserService } from './user.service';
 
 export class UserVo {
   @Expose()

@@ -1,6 +1,5 @@
-import { isProduction } from '@/utils/env';
-import { SupportedLocale, translate } from '@/i18n/i18n';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { isProduction } from '../utils/env';
 
 export interface HttpExceptionPayload {
   message: string | string[];
@@ -36,12 +35,12 @@ export function payloadFromHttpException(exception: HttpException): HttpExceptio
 }
 
 /** 生产环境下将 400/422 等客户端入参错误统一为简短文案 */
-export function sanitizePayloadForProduction(status: number, payload: HttpExceptionPayload, locale?: SupportedLocale): HttpExceptionPayload {
+export function sanitizePayloadForProduction(status: number, payload: HttpExceptionPayload): HttpExceptionPayload {
   if (!isProduction) {
     return payload;
   }
   if (!CLIENT_INPUT_ERROR_STATUS.has(status)) {
     return payload;
   }
-  return { message: translate(locale, 'invalidRequestParameters') };
+  return { message: '请求参数有误' };
 }

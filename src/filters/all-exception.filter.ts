@@ -2,8 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { HttpAdapterHost } from '@nestjs/core';
 import type { Request } from 'express';
 import { payloadFromHttpException, sanitizePayloadForProduction } from './http-exception-payload';
-import { isProduction } from '@/utils/env';
-import { translate } from '@/i18n/i18n';
+import { isProduction } from '../utils/env';
 
 interface IValues {
   message: string | string[];
@@ -44,13 +43,13 @@ export class CatchEverythingFilter implements ExceptionFilter {
     let message: string | string[];
     let error: string | undefined;
     if (exception instanceof HttpException) {
-      const payload = sanitizePayloadForProduction(httpStatus, payloadFromHttpException(exception), request.locale);
+      const payload = sanitizePayloadForProduction(httpStatus, payloadFromHttpException(exception));
       message = payload.message;
       error = payload.error;
     } else if (exception instanceof Error) {
-      message = isProduction ? translate(request.locale, 'internalServerError') : exception.message;
+      message = isProduction ? '服务器错误，请稍后重试' : exception.message;
     } else {
-      message = translate(request.locale, 'internalServerError');
+      message = '服务器错误，请稍后重试';
     }
 
     const path = httpAdapter.getRequestUrl(request) as string;

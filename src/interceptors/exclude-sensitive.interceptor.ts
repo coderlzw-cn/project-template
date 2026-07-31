@@ -26,7 +26,6 @@ export class ExcludeSensitiveInterceptor implements NestInterceptor {
     if (context.getType() !== 'http') {
       return next.handle();
     }
-    
 
     const handler = context.getHandler();
     const controller = context.getClass();

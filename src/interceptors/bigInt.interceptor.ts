@@ -1,7 +1,7 @@
-import { SKIP_BIGINT_TRANSFORM_KEY } from '@/decorators/skip-bigint-transform.decorator';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, StreamableFile } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { map, Observable } from 'rxjs';
+import { SKIP_BIGINT_TRANSFORM_KEY } from '../decorators/skip-bigint-transform.decorator';
 
 @Injectable()
 export class BigIntInterceptor implements NestInterceptor {
@@ -55,7 +55,7 @@ export class BigIntInterceptor implements NestInterceptor {
     }
 
     const descriptors = Object.getOwnPropertyDescriptors(value);
-    const result = Object.create(Object.getPrototypeOf(value)) as object;
+    const result = Object.create(Reflect.getPrototypeOf(value)) as object;
     visited.set(value, result);
 
     for (const key of Object.keys(descriptors)) {
@@ -82,7 +82,12 @@ export class BigIntInterceptor implements NestInterceptor {
       ? value
       : Object.values(Object.getOwnPropertyDescriptors(value))
           .filter((descriptor) => descriptor.enumerable && 'value' in descriptor)
-          .map((descriptor) => descriptor.value);
+          .map((descriptor): unknown => {
+            // PropertyDescriptor.value 在 TypeScript 标准库中声明为 any，
+            // 先收窄为 unknown，避免把不安全类型传播到递归检查中。
+            const descriptorValue: unknown = descriptor.value;
+            return descriptorValue;
+          });
 
     return values.some((item) => this.containsBigInt(item, visited));
   }

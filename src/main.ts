@@ -1,4 +1,4 @@
-import { INestApplication, Logger, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConsoleLogger, INestApplication, Logger, LogLevel, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpAdapterHost, NestApplication, NestFactory, Reflector } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -16,11 +16,11 @@ import { SerializeInterceptor } from './interceptors/serialize.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { IpAccessControlMiddleware } from './middleware/ip-access-control.middleware';
-import { LocaleMiddleware } from './middleware/locale.middleware';
 import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
 import { RequestContextMiddleware } from './middleware/request-context.middleware';
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 declare const module: {
   hot?: {
@@ -68,10 +68,11 @@ const swaggerBootstrap = (app: INestApplication, dev: boolean = false) => {
   });
 };
 
+const logLevels: LogLevel[] = isProduction ? ['log', 'warn', 'error', 'fatal'] : ['verbose', 'debug', 'log', 'warn', 'error', 'fatal'];
+
 async function bootstrap() {
   const app = await NestFactory.create<NestApplication>(AppModule, {
-    // 生产环境只打印 log, error, warn；开发环境打印所有
-    logger: isProduction ? ['log', 'error', 'warn'] : ['debug', 'log', 'verbose', 'warn', 'error'],
+    logger: new ConsoleLogger({ json: isProduction, colors: !isProduction, logLevels, prefix: 'demo' }),
     cors: true,
     // 如果你的 AppModule 初始化非常慢（比如连接数据库很久），这期间产生的日志可能会丢失或乱序。开启 bufferLogs 可以让 Nest 收集所有启动日志，直到 Logger 准备就绪后再一次性打印。
     bufferLogs: true,
@@ -91,7 +92,6 @@ async function bootstrap() {
 
   // 请求上下文和访问日志需早于 Body Parser，确保非法 JSON 请求也有 requestId 和访问日志。
   app.use(RequestContextMiddleware);
-  app.use(LocaleMiddleware);
   app.use(RequestLoggerMiddleware);
 
   // 限制请求体大小
@@ -111,7 +111,7 @@ async function bootstrap() {
   expressApp.set('trust proxy', 1); // 1 表示信任第一层代理
 
   // 全局路由前缀
-  app.setGlobalPrefix(appConfiguration.prefixApi, {
+  app.setGlobalPrefix(appConfiguration.apiPrefix, {
     exclude: [
       { path: 'health', method: RequestMethod.ALL },
       { path: 'health/{*path}', method: RequestMethod.ALL },
@@ -124,6 +124,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ExcludeSensitiveInterceptor(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
   app.useGlobalInterceptors(new SerializeInterceptor(reflector));
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   // 开放静态资源
   app.useStaticAssets(join(process.cwd(), 'resources/images'), {
@@ -149,7 +150,6 @@ async function bootstrap() {
   // 过滤器
   app.useGlobalFilters(new CatchEverythingFilter(httpAdapterHost));
   app.useGlobalFilters(new HttpExceptionFilter());
-
   app.use(MaintenanceModeMiddleware({ enabled: false }));
   app.use(IpAccessControlMiddleware({ allowList: ['127.0.0.1'], excludePaths: ['/health'] }));
 
@@ -164,7 +164,7 @@ async function bootstrap() {
   await app.listen(appConfiguration.port, appConfiguration.host);
 
   Logger.log(`Environment: ${getEnvStr('NODE_ENV')}`, 'Bootstrap');
-  Logger.log(`Application is running on: ${await app.getUrl()}${appConfiguration.prefixApi}`, 'Bootstrap');
+  Logger.log(`Application is running on: ${await app.getUrl()}${appConfiguration.apiPrefix}`, 'Bootstrap');
   Logger.log(`Swagger is running on: ${await app.getUrl()}/swagger`, 'Bootstrap');
 
   if (module.hot) {

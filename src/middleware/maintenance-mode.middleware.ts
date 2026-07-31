@@ -1,6 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
 import { NextFunction, type Request, Response } from 'express';
-import { translate } from '@/i18n/i18n';
 
 /**
  * 维护模式 middleware。
@@ -32,7 +31,7 @@ export function MaintenanceModeMiddleware(
 
     res.status(HttpStatus.SERVICE_UNAVAILABLE).json({
       statusCode: HttpStatus.SERVICE_UNAVAILABLE,
-      message: options.message ?? translate(req.locale, 'maintenance'),
+      message: options.message ?? '系统维护中，请稍后再试',
       timestamp: new Date().toISOString(),
       path: req.originalUrl,
       method: req.method,

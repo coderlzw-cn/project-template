@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  // 1. 项目基础语言 (可选: "ts" | "js"，默认为 "ts")
+  "language": "ts",
+  // 2. 项目源码根目录 (默认为 "src")
+  "sourceRoot": "src",
+  // 3. 项目入口文件名，不需要带扩展名 (默认为 "main")
+  "entryFile": "main",
+  // 4. 在开发/监听模式下运行应用时使用的执行程序 (例如: "node", "ts-node")
+  "exec": "node",
+  // 5. 是否为 Monorepo（多应用/多库）架构 (默认为 false)
+  "monorepo": false, // 6. 编译器相关配置
+  "compilerOptions": {
+    // 编译工具/打包器 (可选: "tsc" | "webpack" | "swc"，默认为 "tsc")
+    "builder": "tsc",
+    // 指定用于编译的 TypeScript 配置文件路径 (默认为 "tsconfig.build.json")
+    "tsConfigPath": "tsconfig.build.json",
+    // 是否启用 Webpack 进行构建打包 (默认为 false，若 builder 设为 "webpack" 则自动生效)
+    "webpack": false,
+    // Webpack 自定义配置文件路径 (默认为 "webpack.config.js")
+    "webpackConfigPath": "webpack.config.js",
+    // 每次编译前是否自动清空输出目录 (dist 文件夹)
+    "deleteOutDir": true,
+    // 是否对非 TypeScript 静态资源文件开启变更监听 (默认为 false)
+    "watchAssets": false,
+    // 是否在构建过程中执行类型检查（使用 SWC 等非 tsc 编译器时有用）
+    "typeCheck": true,
+    // 在 --watch 模式下，是否允许按回车键手动重启应用 (默认为 true)
+    "manualRestart": true,
+    // 静态资源文件拷贝规则（例如 .graphql、.env、模板文件或图片等）
+    "assets": [
+      // 简单字符串写法：基于 sourceRoot 复制指定 glob 模式的文件
+      "**/*.graphql",
+      // 对象写法：更灵活的配置方式
+      {
+        "include": "**/*.html", // 要包含的文件 glob 规则
+        "outDir": "dist/views", // 编译后输出的目标路径
+        "watchAssets": true, // 是否单独监听此规则匹配的文件变动
+      },
+    ],
+    // NestJS 编译器插件配置（如 Swagger、GraphQL 自动元数据插件）
+    "plugins": [
+      // 简单写法：插件包名
+      "@nestjs/swagger",
+      // 带参数写法：对象格式
+      {
+        "name": "@nestjs/graphql",
+        "options": {
+          "typeFileName": [".input.ts", ".args.ts"],
+          "introspectComments": true,
+        },
+      },
+    ],
+  },
+  // 7. 代码生成器配置 (`nest generate` / `nest g` 命令的默认行为)
+  "generateOptions": {
+    // 是否默认生成测试文件 (.spec.ts) (默认为 true)
+    "spec": true,
+    // 是否扁平化输出（即不为新生成的模块/组件创建子文件夹，默认为 false）
+    "flat": false,
+  },
+  // 8. Monorepo 架构下的项目集合定义（仅当 "monorepo": true 时使用）
+  "projects": {
+    "my-app": {
+      // 项目类型 (可选: "application" | "library")
+      "type": "application",
+      // 该子项目的根目录路径
+      "root": "apps/my-app",
+      // 该子项目的入口文件名
+      "entryFile": "main",
+      // 该子项目的源码根目录
+      "sourceRoot": "apps/my-app/src",
+      // 覆盖全局的编译器选项
+      "compilerOptions": {
+        "tsConfigPath": "apps/my-app/tsconfig.app.json",
+      },
+    },
+  },
+}

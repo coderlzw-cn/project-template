@@ -1,6 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { translate } from '@/i18n/i18n';
 
 /**
  * IP 访问控制 middleware。
@@ -46,7 +45,7 @@ export function IpAccessControlMiddleware(options: {
     if (blockSet.has(ip)) {
       res.status(HttpStatus.FORBIDDEN).json({
         statusCode: HttpStatus.FORBIDDEN,
-        message: translate(req.locale, 'ipBlocked'),
+        message: '当前 IP 已被禁止访问',
         timestamp: new Date().toISOString(),
         path: req.originalUrl,
         method: req.method,
@@ -62,7 +61,7 @@ export function IpAccessControlMiddleware(options: {
 
     res.status(HttpStatus.FORBIDDEN).json({
       statusCode: HttpStatus.FORBIDDEN,
-      message: translate(req.locale, 'ipNotAllowed'),
+      message: '当前 IP 不允许访问',
       timestamp: new Date().toISOString(),
       path: req.originalUrl,
       method: req.method,

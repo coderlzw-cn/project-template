@@ -1,8 +1,8 @@
-import { AUDIT_LOG_METADATA_KEY, AuditLogOptions } from '@/decorators/audit-log.decorator';
 import { CallHandler, ExecutionContext, HttpException, Injectable, Logger, NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request, Response } from 'express';
 import { finalize, Observable, tap } from 'rxjs';
+import { AuditLogOptions, AUDIT_LOG_METADATA_KEY } from '../decorators/audit-log.decorator';
 
 interface AuditRecord {
   timestamp: string;

@@ -1,10 +1,8 @@
-import { MAX_TIMEOUT_MS, SKIP_TIMEOUT_KEY, TIMEOUT_METADATA_KEY } from '@/decorators/timeout.decorator';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, RequestTimeoutException } from '@nestjs/common';
 import { SSE_METADATA } from '@nestjs/common/constants';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
 import { Observable, throwError, timeout } from 'rxjs';
-import { translate } from '@/i18n/i18n';
+import { SKIP_TIMEOUT_KEY, TIMEOUT_METADATA_KEY, MAX_TIMEOUT_MS } from '../decorators/timeout.decorator';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -26,15 +24,14 @@ export class TimeoutInterceptor implements NestInterceptor {
     }
 
     const configuredTimeout = this.reflector.getAllAndOverride<number>(TIMEOUT_METADATA_KEY, [handler, controller]);
-    const timeoutMs = Number.isInteger(configuredTimeout) && (configuredTimeout ?? 0) > 0 && (configuredTimeout ?? 0) <= MAX_TIMEOUT_MS ? configuredTimeout! : DEFAULT_TIMEOUT_MS;
-    const locale = context.switchToHttp().getRequest<Request>().locale;
+    const timeoutMs = Number.isInteger(configuredTimeout) && (configuredTimeout ?? 0) > 0 && (configuredTimeout ?? 0) <= MAX_TIMEOUT_MS ? configuredTimeout : DEFAULT_TIMEOUT_MS;
 
     return next.handle().pipe(
       timeout({
         // HTTP 请求只关心首次响应；SSE 已在上方跳过，不应对后续发射间隔重复计时。
         first: timeoutMs,
         with: () => {
-          return throwError(() => new RequestTimeoutException(translate(locale, 'requestTimeout', { timeoutMs })));
+          return throwError(() => new RequestTimeoutException(`请求处理超过 ${timeoutMs}ms`));
         },
       }),
     );

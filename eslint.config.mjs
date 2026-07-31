@@ -7,7 +7,7 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig(
   {
-    ignores: ['eslint.config.mjs', 'webpack-hmr.config.cjs'],
+    ignores: ['eslint.config.mjs', 'webpack.config.cjs', 'ecosystem.config.cjs'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -21,7 +21,7 @@ export default defineConfig(
       sourceType: 'commonjs',
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
-  projectService: true,
+        projectService: true,
       },
     },
   },
