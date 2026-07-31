@@ -5,12 +5,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-
+import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
 import { appConfig } from './config/app.config';
 import { HealthModule } from './infrastructure/health/health.module';
 import { InfluxdbModule } from './infrastructure/influxdb';
-import { UserModule } from './user/user.module';
+import { UserModule } from './module/user/user.module';
 import { LicenseModule } from './license/license.module';
+import { join } from 'node:path';
+import { isDevelopment } from './utils/env';
+import { AuthModule } from './module/auth/auth.module';
+
+console.log(join(__dirname, 'i18n'));
 
 const nodeEnv = process.env.NODE_ENV ?? 'development';
 const envFilePath = [`.env.${nodeEnv}.local`, `.env.${nodeEnv}`, '.env.local', '.env'];
@@ -35,12 +40,29 @@ const envFilePath = [`.env.${nodeEnv}.local`, `.env.${nodeEnv}`, '.env.local', '
     HealthModule,
     UserModule,
     LicenseModule,
+    AuthModule,
     InfluxdbModule.forRoot({
       isGlobal: true,
       host: 'http://197.0.0.1',
       token: 'demo',
       database: 'demo',
       logging: true,
+    }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'zh',
+      fallbacks: {
+        'zh-*': 'zh',
+        'en-*': 'en',
+      },
+      loaderOptions: {
+        path: join(__dirname, 'i18n'),
+        watch: isDevelopment,
+      },
+      resolvers: [
+        new AcceptLanguageResolver({
+          matchType: 'strict-loose',
+        }),
+      ],
     }),
   ],
   providers: [

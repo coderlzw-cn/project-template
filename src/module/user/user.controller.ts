@@ -2,6 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { UserService } from './user.service';
+import { SkipLicense } from '@/license/skip-license.decorator';
 
 export class UserVo {
   @Expose()
@@ -19,6 +20,8 @@ export class UserVo {
 
   // 没有声明 password，因此不会输出
 }
+
+@SkipLicense()
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

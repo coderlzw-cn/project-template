@@ -1,11 +1,13 @@
+import type { User as PrismaUser } from '@/generated/prisma/client';
+
 declare global {
+  type AuthUserPayload = Pick<PrismaUser, 'id' | 'username'>;
+
   namespace Express {
-    interface CurrentUser {
-      [key: string]: unknown;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface User extends PrismaUser {}
 
     interface Request {
-      user?: CurrentUser;
       clientIp?: string;
       requestId: string;
     }

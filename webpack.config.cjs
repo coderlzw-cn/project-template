@@ -30,7 +30,10 @@ module.exports = function (options, webpack) {
     output: {
       ...options.output,
       // HMR 每次编译都会生成 manifest JSON 和更新 chunk。emit 前清理不再属于当前编译的文件，避免历史热更新文件持续堆积。
-      clean: true,
+      // clean: true,
+      clean: {
+        keep: /i18n\//,
+      },
     },
     // 仅开发环境注入 HMR 轮询入口；生产构建沿用 Nest 默认入口，避免生成的服务进程持续轮询热更新。
     entry: isDevelopment ? ['webpack/hot/poll?300', options.entry] : options.entry,
@@ -63,9 +66,5 @@ module.exports = function (options, webpack) {
     ],
   };
 };
-
-
-
-
 
  

@@ -10,7 +10,7 @@ import { Request } from 'express';
  * @User()
  * @User('id')
  */
-export const User = createParamDecorator((data: keyof Express.CurrentUser | undefined, ctx: ExecutionContext) => {
+export const AuthUser = createParamDecorator((data: keyof AuthUserPayload | undefined, ctx: ExecutionContext) => {
   const request = ctx.switchToHttp().getRequest<Request>();
   const user = request.user;
   return data ? user?.[data] : user;

@@ -3,7 +3,8 @@ import { Reflector } from '@nestjs/core';
 import { map, Observable } from 'rxjs';
 import { SENSITIVE_FIELDS_METADATA_KEY, SKIP_SENSITIVE_FIELDS_METADATA_KEY } from '../decorators/sensitive.decorator';
 
-const DEFAULT_SENSITIVE_FIELDS = ['password', 'token', 'accessToken', 'refreshToken', 'secret', 'privateKey', 'salt'];
+// const DEFAULT_SENSITIVE_FIELDS = ['password', 'token', 'accessToken', 'refreshToken', 'secret', 'privateKey', 'salt'];
+const DEFAULT_SENSITIVE_FIELDS = [];
 
 /**
  * 敏感字段剔除拦截器。

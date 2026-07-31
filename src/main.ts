@@ -10,7 +10,6 @@ import { AppModule } from './app.module';
 import { appConfig } from './config/app.config';
 import { CatchEverythingFilter } from './filters/all-exception.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { AuditLogInterceptor } from './interceptors/audit-log.interceptor';
 import { ExcludeSensitiveInterceptor } from './interceptors/exclude-sensitive.interceptor';
 import { SerializeInterceptor } from './interceptors/serialize.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
@@ -21,6 +20,7 @@ import { RequestContextMiddleware } from './middleware/request-context.middlewar
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { I18nMiddleware } from 'nestjs-i18n';
 
 declare const module: {
   hot?: {
@@ -91,6 +91,7 @@ async function bootstrap() {
   );
 
   // 请求上下文和访问日志需早于 Body Parser，确保非法 JSON 请求也有 requestId 和访问日志。
+  app.use(I18nMiddleware);
   app.use(RequestContextMiddleware);
   app.use(RequestLoggerMiddleware);
 
@@ -119,7 +120,6 @@ async function bootstrap() {
   });
 
   // 注册全局响应转换拦截器（需 Reflector 以识别 @HttpCode、@SkipTransform 等元数据）
-  app.useGlobalInterceptors(new AuditLogInterceptor(reflector));
   app.useGlobalInterceptors(new TimeoutInterceptor(reflector));
   app.useGlobalInterceptors(new ExcludeSensitiveInterceptor(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
