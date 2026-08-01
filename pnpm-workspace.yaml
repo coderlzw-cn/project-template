@@ -1,6 +1,7 @@
 allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': true
+  bcrypt: true
   prisma: true
   protobufjs: true
   unrs-resolver: true

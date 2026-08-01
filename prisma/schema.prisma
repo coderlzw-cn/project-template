@@ -1,17 +1,70 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
+/// 用户角色：ADMIN 管理员 / USER 普通用户
+enum UserRole {
+  ADMIN
+  USER
+}
+
+/// 用户表
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  email     String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  /// 用户ID，自增主键
+  id          Int           @id @default(autoincrement())
+  /// 用户名，全局唯一，用于登录
+  username    String        @unique
+  /// 密码的 bcrypt 哈希值（不存明文）
+  password    String
+  /// 邮箱，可选，全局唯一
+  email       String?       @unique
+  /// 用户角色，默认普通用户
+  role        UserRole      @default(USER)
+  /// 连续登录失败次数，登录成功或触发锁定后清零
+  failedLoginAttempts Int   @default(0) @map("failed_login_attempts")
+  /// 锁定截止时间，晚于当前时间表示账户被锁定（连续登录失败触发），到期自动解锁
+  lockedUntil DateTime?     @map("locked_until")
+  /// 创建时间
+  createdTime DateTime      @default(now()) @map("create_time")
+  /// 更新时间
+  updatedTime DateTime      @updatedAt @map("update_time")
+  /// 该用户的登录会话列表
+  sessions    AuthSession[]
+
+  @@map("user")
+}
+
+/// 认证会话表，一行代表一次登录产生的会话（refresh token 的生命周期）
+model AuthSession {
+  /// 会话ID，UUID，同时作为 access token 的 jti 声明
+  id               String    @id @db.VarChar(36)
+  /// 所属用户ID
+  userId           Int       @map("user_id")
+  /// refresh token 的 SHA-256 哈希值（不存原始令牌），刷新时轮换
+  refreshTokenHash String    @unique @map("refresh_token_hash") @db.Char(64)
+  /// 会话过期时间，超过后 refresh token 不可用
+  expiresTime      DateTime  @map("expires_time")
+  /// 撤销时间，非空表示会话已注销（注销/改密/超额淘汰），保留一段时间用于审计
+  revokedTime      DateTime? @map("revoked_time")
+  /// 最后使用时间，登录和刷新令牌时更新，用于淘汰最久未使用的会话
+  lastUsedTime     DateTime  @default(now()) @map("last_used_time")
+  /// 登录/刷新时的客户端 IP（已归一化，最长 45 字符兼容 IPv6）
+  ipAddress        String?   @map("ip_address") @db.VarChar(45)
+  /// 登录/刷新时的客户端 User-Agent，用于会话管理页面展示设备信息
+  userAgent        String?   @map("user_agent") @db.VarChar(512)
+  /// 创建时间
+  createdTime      DateTime  @default(now()) @map("create_time")
+  /// 更新时间
+  updatedTime      DateTime  @updatedAt @map("update_time")
+  /// 所属用户，用户删除时级联删除会话
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedTime, expiresTime])
+  @@map("auth_session")
 }

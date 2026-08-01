@@ -19,6 +19,11 @@ export * as $Enums from './enums.js'
 export * from './enums.js';
 /**
  * Model User
- * 
+ * 用户表
  */
 export type User = Prisma.UserModel
+/**
+ * Model AuthSession
+ * 认证会话表，一行代表一次登录产生的会话（refresh token 的生命周期）
+ */
+export type AuthSession = Prisma.AuthSessionModel

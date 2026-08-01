@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsByteLength, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class LoginDto {
   @ApiProperty({ description: '登录用户名', example: 'admin', maxLength: 64 })
-  @MaxLength(64, { message: '用户名长度不能超过 64 个字符' })
-  @IsNotEmpty({ message: '用户名不能为空' })
-  @IsString({ message: '用户名必须是字符串' })
+  @MaxLength(64, { message: i18nValidationMessage('auth.VALIDATION.USERNAME_MAX_LENGTH') })
+  @IsNotEmpty({ message: i18nValidationMessage('auth.VALIDATION.USERNAME_REQUIRED') })
+  @IsString({ message: i18nValidationMessage('auth.VALIDATION.USERNAME_STRING') })
   username: string;
 
-  @ApiProperty({ description: '登录密码', example: '123456', maxLength: 128, format: 'password' })
-  @MaxLength(128, { message: '密码长度不能超过 128 个字符' })
-  @IsNotEmpty({ message: '密码不能为空' })
-  @IsString({ message: '密码必须是字符串' })
+  @ApiProperty({ description: '登录密码', example: '123456', maxLength: 72, format: 'password' })
+  @IsByteLength(1, 72, { message: i18nValidationMessage('auth.VALIDATION.PASSWORD_BYTE_LENGTH') })
+  @IsNotEmpty({ message: i18nValidationMessage('auth.VALIDATION.PASSWORD_REQUIRED') })
+  @IsString({ message: i18nValidationMessage('auth.VALIDATION.PASSWORD_STRING') })
   password: string;
 }

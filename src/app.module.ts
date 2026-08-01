@@ -12,16 +12,16 @@ import { InfluxdbModule } from './infrastructure/influxdb';
 import { UserModule } from './module/user/user.module';
 import { LicenseModule } from './license/license.module';
 import { join } from 'node:path';
-import { isDevelopment } from './utils/env';
+import {environment, isDevelopment} from './utils/env';
 import { AuthModule } from './module/auth/auth.module';
+import { mysqlConfig } from './config/mysql.config';
+import {PrismaModule} from "@/module/prisma/prisma.module";
 
-console.log(join(__dirname, 'i18n'));
+const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.local', '.env'];
 
-const nodeEnv = process.env.NODE_ENV ?? 'development';
-const envFilePath = [`.env.${nodeEnv}.local`, `.env.${nodeEnv}`, '.env.local', '.env'];
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: false, envFilePath, load: [appConfig] }),
+    ConfigModule.forRoot({ isGlobal: true, cache: false, envFilePath, load: [appConfig, mysqlConfig] }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -40,6 +40,7 @@ const envFilePath = [`.env.${nodeEnv}.local`, `.env.${nodeEnv}`, '.env.local', '
     HealthModule,
     UserModule,
     LicenseModule,
+    PrismaModule,
     AuthModule,
     InfluxdbModule.forRoot({
       isGlobal: true,

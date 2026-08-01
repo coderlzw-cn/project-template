@@ -1,4 +1,4 @@
-import { ConsoleLogger, INestApplication, Logger, LogLevel, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConsoleLogger, INestApplication, Logger, LogLevel, RequestMethod, VersioningType } from '@nestjs/common';
 import { HttpAdapterHost, NestApplication, NestFactory, Reflector } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -20,7 +20,7 @@ import { RequestContextMiddleware } from './middleware/request-context.middlewar
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
-import { I18nMiddleware } from 'nestjs-i18n';
+import { I18nMiddleware, I18nValidationPipe } from 'nestjs-i18n';
 
 declare const module: {
   hot?: {
@@ -133,7 +133,7 @@ async function bootstrap() {
 
   // 全局管道
   app.useGlobalPipes(
-    new ValidationPipe({
+    new I18nValidationPipe({
       whitelist: true, // 自动剔除输入对象中没有任何装饰器的属性
       transform: true, // 必须开启，才会触发 class-transformer
       stopAtFirstError: true, // 遇到第一个错误时停止验证，而不是继续验证所有错误

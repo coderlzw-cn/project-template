@@ -27,9 +27,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: 'user测试' })
-  @Get()
-  // @SensitiveFields('password', 'phone')
-  // @Serialize(UserVo)
+  @Get("list")
   users() {
     return this.userService.finAll();
   }

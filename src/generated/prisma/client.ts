@@ -12,8 +12,6 @@
 
 import * as process from 'node:process'
 import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
-globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
 
 import * as runtime from "@prisma/client/runtime/client"
 import * as $Enums from "./enums.js"
@@ -43,6 +41,11 @@ export { Prisma }
 
 /**
  * Model User
- * 
+ * 用户表
  */
 export type User = Prisma.UserModel
+/**
+ * Model AuthSession
+ * 认证会话表，一行代表一次登录产生的会话（refresh token 的生命周期）
+ */
+export type AuthSession = Prisma.AuthSessionModel
