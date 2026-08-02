@@ -1,7 +1,7 @@
+import { PrismaClient } from '@/generated/prisma/client';
 import { Inject, Injectable } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
-import { PrismaClient } from '@/generated/prisma/client';
 import { mysqlConfig } from '../../config/mysql.config';
 
 @Injectable()

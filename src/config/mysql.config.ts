@@ -1,7 +1,9 @@
-import { registerAs } from '@nestjs/config';
 import { getEnvStr } from '@/utils/env';
+import { registerAs } from '@nestjs/config';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
-const parseDatabaseUrl = (databaseUrl: string) => {
+export type MysqlConfig = ConstructorParameters<typeof PrismaMariaDb>[0];
+const parseDatabaseUrl = (databaseUrl: string): Record<string, any> => {
   let url: URL;
 
   try {
@@ -26,7 +28,13 @@ const parseDatabaseUrl = (databaseUrl: string) => {
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
     database,
-  };
+    connectionLimit: 10,
+    connectTimeout: 10000, // 建连超时（TCP+握手），默认只有 1000ms，高延迟下最容易先炸的就是它
+    acquireTimeout: 1, // 从连接池拿到连接的超时，默认 10000ms，应 > connectTimeout
+    queryTimeout: 15000, // 服务器端语句执行上限，仅 MariaDB 生效
+    socketTimeout: 60000, // 请求发出后 socket 无数据的超时，兜底网络挂死的情况
+    idleTimeout: 30, // 注意单位是秒！让池子先回收空闲连接，避免被 socketTimeout 误杀
+  } satisfies MysqlConfig;
 };
 
 export const mysqlConfig = registerAs('mysql', () => {

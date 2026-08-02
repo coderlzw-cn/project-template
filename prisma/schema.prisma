@@ -1,7 +1,8 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "cjs"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = ""
 }
 
 datasource db {
@@ -17,25 +18,25 @@ enum UserRole {
 /// 用户表
 model User {
   /// 用户ID，自增主键
-  id          Int           @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   /// 用户名，全局唯一，用于登录
-  username    String        @unique
+  username            String        @unique
   /// 密码的 bcrypt 哈希值（不存明文）
-  password    String
+  password            String
   /// 邮箱，可选，全局唯一
-  email       String?       @unique
+  email               String?       @unique
   /// 用户角色，默认普通用户
-  role        UserRole      @default(USER)
+  role                UserRole      @default(USER)
   /// 连续登录失败次数，登录成功或触发锁定后清零
-  failedLoginAttempts Int   @default(0) @map("failed_login_attempts")
+  failedLoginAttempts Int           @default(0) @map("failed_login_attempts")
   /// 锁定截止时间，晚于当前时间表示账户被锁定（连续登录失败触发），到期自动解锁
-  lockedUntil DateTime?     @map("locked_until")
+  lockedUntil         DateTime?     @map("locked_until")
   /// 创建时间
-  createdTime DateTime      @default(now()) @map("create_time")
+  createdTime         DateTime      @default(now()) @map("create_time")
   /// 更新时间
-  updatedTime DateTime      @updatedAt @map("update_time")
+  updatedTime         DateTime      @updatedAt @map("update_time")
   /// 该用户的登录会话列表
-  sessions    AuthSession[]
+  sessions            AuthSession[]
 
   @@map("user")
 }

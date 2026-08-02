@@ -1,17 +1,17 @@
+import { AuthUser } from '@/decorators/auth-user.decoratior';
+import { Public } from '@/decorators/public.decorator';
 import { SkipLicense } from '@/license/skip-license.decorator';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Public } from '@/decorators/public.decorator';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { AuthEnabledGuard } from './guard/auth-enabled.guard';
-import { LocalAuthGuard } from './guard/local-auth.guard';
 import { type Request } from 'express';
-import { AuthUser } from '@/decorators/auth-user.decoratior';
+import { AuthService } from './auth.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import { AuthEnabledGuard } from './guard/auth-enabled.guard';
+import { LocalAuthGuard } from './guard/local-auth.guard';
 
 const getSessionMetadata = (request: Request) => ({
   ipAddress: request.clientIp ?? request.ip,
@@ -41,8 +41,6 @@ export class AuthController {
   login(@Body() _credentials: LoginDto, @Req() request: Request) {
     return this.authService.login(request.user!, getSessionMetadata(request));
   }
-
-
 
   @Public()
   @UseGuards(AuthEnabledGuard)

@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { LicenseService } from './license.service';
 import { Public } from '../decorators/public.decorator';
+import { LicenseService } from './license.service';
 
 @Public()
 @ApiTags('license')

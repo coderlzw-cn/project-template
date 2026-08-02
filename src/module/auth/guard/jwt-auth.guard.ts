@@ -1,11 +1,11 @@
+import { PrismaService } from '@/module/prisma/prisma.service';
 import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '../../../decorators/public.decorator';
-import type { ConfigType } from '@nestjs/config';
-import { PrismaService } from '@/module/prisma/prisma.service';
-import { authJwtConfig } from '../../../config/jwt.config';
 import { type Request } from 'express';
+import { authJwtConfig } from '../../../config/jwt.config';
+import { IS_PUBLIC_KEY } from '../../../decorators/public.decorator';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {

@@ -1,4 +1,4 @@
-import { BlockList, isIPv4, isIPv6, isIP } from 'node:net';
+import { BlockList, isIP, isIPv4, isIPv6 } from 'node:net';
 
 /** 数据库/日志中 IP 字段的最大长度（IPv6 最长 45 字符） */
 export const IP_MAX_LENGTH = 45;

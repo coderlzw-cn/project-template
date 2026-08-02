@@ -1,8 +1,8 @@
+import { SkipLicense } from '@/license/skip-license.decorator';
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { UserService } from './user.service';
-import { SkipLicense } from '@/license/skip-license.decorator';
 
 export class UserVo {
   @Expose()
@@ -27,7 +27,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: 'user测试' })
-  @Get("list")
+  @Get('list')
   users() {
     return this.userService.finAll();
   }

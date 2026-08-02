@@ -49,6 +49,9 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# turbo
+.turbo
+
 # temp directory
 .temp
 .tmp

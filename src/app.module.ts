@@ -1,22 +1,22 @@
+import { PrismaModule } from '@/module/prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
+import { join } from 'node:path';
 import { appConfig } from './config/app.config';
+import { mysqlConfig } from './config/mysql.config';
 import { HealthModule } from './infrastructure/health/health.module';
 import { InfluxdbModule } from './infrastructure/influxdb';
-import { UserModule } from './module/user/user.module';
 import { LicenseModule } from './license/license.module';
-import { join } from 'node:path';
-import {environment, isDevelopment} from './utils/env';
 import { AuthModule } from './module/auth/auth.module';
-import { mysqlConfig } from './config/mysql.config';
-import {PrismaModule} from "@/module/prisma/prisma.module";
-
+import { UserModule } from './module/user/user.module';
+import { environment, isDevelopment } from './utils/env';
 const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.local', '.env'];
 
 @Module({
@@ -34,6 +34,9 @@ const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.l
       isGlobal: true, // 设置为全局模块
       ttl: 5, // 默认缓存时间 5 秒
       max: 100, // 内存中最大缓存条目数
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
     }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),

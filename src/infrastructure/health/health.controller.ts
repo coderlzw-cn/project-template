@@ -2,11 +2,11 @@ import { Controller, Get, VERSION_NEUTRAL, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DiskHealthIndicator, HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Public } from '../../decorators/public.decorator';
+import { SkipTransform } from '../../decorators/skip-transform.decorator';
 import { ApplicationHealthIndicator } from './application.health-indicator';
 import { ConfigHealthIndicator } from './config.health-indicator';
 import { EventLoopHealthIndicator } from './event-loop.health-indicator';
-import { Public } from '../../decorators/public.decorator';
-import { SkipTransform } from '../../decorators/skip-transform.decorator';
 
 @ApiTags('Health')
 @Public()

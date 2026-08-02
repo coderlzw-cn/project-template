@@ -5,22 +5,21 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import { json, urlencoded, type Application } from 'express';
 import helmet from 'helmet';
+import { I18nMiddleware, I18nValidationPipe } from 'nestjs-i18n';
 import { join } from 'node:path';
 import { AppModule } from './app.module';
 import { appConfig } from './config/app.config';
 import { CatchEverythingFilter } from './filters/all-exception.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { ExcludeSensitiveInterceptor } from './interceptors/exclude-sensitive.interceptor';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { SerializeInterceptor } from './interceptors/serialize.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { IpAccessControlMiddleware } from './middleware/ip-access-control.middleware';
 import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
 import { RequestContextMiddleware } from './middleware/request-context.middleware';
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
-import { I18nMiddleware, I18nValidationPipe } from 'nestjs-i18n';
 
 declare const module: {
   hot?: {
@@ -151,7 +150,7 @@ async function bootstrap() {
   app.useGlobalFilters(new CatchEverythingFilter(httpAdapterHost));
   app.useGlobalFilters(new HttpExceptionFilter());
   app.use(MaintenanceModeMiddleware({ enabled: false }));
-  app.use(IpAccessControlMiddleware({ allowList: ['127.0.0.1'], excludePaths: ['/health'] }));
+  // app.use(IpAccessControlMiddleware({ allowList: ['127.0.0.1'], excludePaths: ['/health'] }));
 
   // 使用 WebSocket 适配器
   app.useWebSocketAdapter(new WsAdapter(app));

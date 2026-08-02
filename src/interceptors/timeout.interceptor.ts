@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor, RequestTime
 import { SSE_METADATA } from '@nestjs/common/constants';
 import { Reflector } from '@nestjs/core';
 import { Observable, throwError, timeout } from 'rxjs';
-import { SKIP_TIMEOUT_KEY, TIMEOUT_METADATA_KEY, MAX_TIMEOUT_MS } from '../decorators/timeout.decorator';
+import { MAX_TIMEOUT_MS, SKIP_TIMEOUT_KEY, TIMEOUT_METADATA_KEY } from '../decorators/timeout.decorator';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 

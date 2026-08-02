@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { SKIP_LICENSE_KEY } from './skip-license.decorator';
 import { LicenseService } from './license.service';
+import { SKIP_LICENSE_KEY } from './skip-license.decorator';
 
 @Injectable()
 export class LicenseGuard implements CanActivate {

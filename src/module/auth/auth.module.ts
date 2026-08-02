@@ -3,14 +3,14 @@ import { ConfigModule, ConfigType } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthController } from './auth.controller';
 import { authJwtConfig } from '../../config/jwt.config';
+import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthEnabledGuard } from './guard/auth-enabled.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
+import { LocalAuthGuard } from './guard/local-auth.guard';
 import { RolesGuard } from './guard/roles.guard';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { LocalAuthGuard } from './guard/local-auth.guard';
 import { LocalStrategy } from './strategy/local.strategy';
 
 @Module({

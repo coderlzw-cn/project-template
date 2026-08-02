@@ -1,28 +1,19 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import type { ConfigType } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import type { User } from '@/generated/prisma/client';
 import { ResponseResult } from '@/interceptors/transform.interceptor';
 import { PrismaService } from '@/module/prisma/prisma.service';
 import { normalizeIp } from '@/utils/ip';
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { compare, hash } from 'bcrypt';
-import { createHash, randomUUID } from 'node:crypto';
 import { I18nService } from 'nestjs-i18n';
+import { createHash, randomUUID } from 'node:crypto';
 import { catchError, defer, forkJoin, from, map, Observable, of, switchMap, throwError } from 'rxjs';
+import { authJwtConfig } from '../../config/jwt.config';
 import type { AuthTokenClaims, AuthTokens, AuthUserClaims, SessionMetadata } from './auth.types';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 import type { RegisterDto } from './dto/register.dto';
-import { authJwtConfig } from '../../config/jwt.config';
 
 const BCRYPT_SALT_ROUNDS = 10;
 // 每个用户允许的最大活跃会话数，登录超出时按最近使用时间淘汰最旧的会话，防止反复登录（或恶意刷登录接口）导致会话无限积累
@@ -38,6 +29,11 @@ const ACCOUNT_LOCK_MINUTES = 15;
 const getRefreshTokenAudience = (accessTokenAudience: string) => `${accessTokenAudience}:refresh`;
 const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 const isPrismaErrorCode = (error: unknown, code: string): boolean => typeof error === 'object' && error !== null && 'code' in error && error.code === code;
+// P2002（唯一约束冲突）的 meta.target 是冲突的唯一索引名（如 user_username_key）或字段名数组，据此区分具体是哪个字段冲突
+const getUniqueConflictTarget = (error: unknown): string => {
+  const meta = (error as { meta?: { target?: unknown } }).meta;
+  return Array.isArray(meta?.target) ? meta.target.join(',') : String(meta?.target ?? '');
+};
 
 @Injectable()
 export class AuthService {
@@ -144,9 +140,11 @@ export class AuthService {
   }
 
   register({ username, password, email }: RegisterDto, metadata: SessionMetadata) {
-    // 获取系统未初始化、用户已存在的错误消息
+    // 提前解析错误消息，避免在 rxjs 回调中丢失 i18n 请求上下文
     const notInitializedMessage = this.i18nService.t('auth.SYSTEM_NOT_INITIALIZED');
     const userAlreadyExistsMessage = this.i18nService.t('auth.USER_ALREADY_EXISTS');
+    const usernameAlreadyExistsMessage = this.i18nService.t('auth.USERNAME_ALREADY_EXISTS');
+    const emailAlreadyExistsMessage = this.i18nService.t('auth.EMAIL_ALREADY_EXISTS');
 
     return from(this.prismaService.user.findFirst({ select: { id: true } })).pipe(
       map((initializedUser) => {
@@ -165,7 +163,10 @@ export class AuthService {
       ),
       catchError((error: unknown) => {
         if (isPrismaErrorCode(error, 'P2002')) {
-          return throwError(() => new ConflictException(userAlreadyExistsMessage));
+          // 根据冲突的唯一索引区分是用户名还是邮箱被占用，无法识别时回退到通用消息
+          const target = getUniqueConflictTarget(error);
+          const message = target.includes('username') ? usernameAlreadyExistsMessage : target.includes('email') ? emailAlreadyExistsMessage : userAlreadyExistsMessage;
+          return throwError(() => new ConflictException(message));
         }
         return throwError(() => error);
       }),
@@ -391,7 +392,7 @@ export class AuthService {
    * @returns
    */
   private signTokens(user: AuthUserClaims, sessionId: string): Observable<AuthTokens> {
-    const claims = { id: user.id, username: user.username, role: user.role }; 
+    const claims = { id: user.id, username: user.username, role: user.role };
 
     return forkJoin({
       accessToken: defer(() =>
@@ -412,8 +413,8 @@ export class AuthService {
 
   /**
    * 验证刷新令牌
-   * @param refreshToken 
-   * @returns 
+   * @param refreshToken
+   * @returns
    */
   private verifyRefreshToken(refreshToken: string): Observable<AuthTokenClaims> {
     return defer(() =>
