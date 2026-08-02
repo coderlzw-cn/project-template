@@ -1,3 +1,4 @@
+import { getDatabaseUniqueConflictTarget, isDatabaseErrorCode, PrismaKnownErrorCode } from '@/filters/database-error';
 import type { User } from '@/generated/prisma/client';
 import { ResponseResult } from '@/interceptors/transform.interceptor';
 import { PrismaService } from '@/module/prisma/prisma.service';
@@ -28,12 +29,6 @@ const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const ACCOUNT_LOCK_MINUTES = 15;
 const getRefreshTokenAudience = (accessTokenAudience: string) => `${accessTokenAudience}:refresh`;
 const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
-const isPrismaErrorCode = (error: unknown, code: string): boolean => typeof error === 'object' && error !== null && 'code' in error && error.code === code;
-// P2002（唯一约束冲突）的 meta.target 是冲突的唯一索引名（如 user_username_key）或字段名数组，据此区分具体是哪个字段冲突
-const getUniqueConflictTarget = (error: unknown): string => {
-  const meta = (error as { meta?: { target?: unknown } }).meta;
-  return Array.isArray(meta?.target) ? meta.target.join(',') : String(meta?.target ?? '');
-};
 
 @Injectable()
 export class AuthService {
@@ -62,6 +57,7 @@ export class AuthService {
    * 锁定期内直接拒绝（到期自动解锁）；密码错误累计失败次数，达到上限锁定账户并清零计数；密码正确重置计数
    */
   private async verifyPasswordWithLockout(user: User, password: string): Promise<boolean> {
+    // 账户锁定期内直接拒绝登录
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minutes = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60_000);
       throw new ForbiddenException(this.i18nService.t('auth.ACCOUNT_LOCKED', { args: { minutes } }));
@@ -110,7 +106,6 @@ export class AuthService {
   initialize({ username, password, email }: RegisterDto, metadata: SessionMetadata) {
     // 如果系统已经初始化，则禁止重复初始化
     const alreadyInitializedMessage = this.i18nService.t('auth.SYSTEM_ALREADY_INITIALIZED');
-    // 创建用户
     const createUser$ = defer(() => hash(password, BCRYPT_SALT_ROUNDS)).pipe(
       switchMap((passwordHash) =>
         from(
@@ -129,7 +124,11 @@ export class AuthService {
         ),
       ),
       catchError((error: unknown) => {
-        if (error instanceof ConflictException || isPrismaErrorCode(error, 'P2002') || isPrismaErrorCode(error, 'P2034')) {
+        if (
+          error instanceof ConflictException ||
+          isDatabaseErrorCode(error, PrismaKnownErrorCode.UniqueConstraintViolation) ||
+          isDatabaseErrorCode(error, PrismaKnownErrorCode.TransactionWriteConflict)
+        ) {
           return throwError(() => new ConflictException(alreadyInitializedMessage));
         }
         return throwError(() => error);
@@ -140,7 +139,6 @@ export class AuthService {
   }
 
   register({ username, password, email }: RegisterDto, metadata: SessionMetadata) {
-    // 提前解析错误消息，避免在 rxjs 回调中丢失 i18n 请求上下文
     const notInitializedMessage = this.i18nService.t('auth.SYSTEM_NOT_INITIALIZED');
     const userAlreadyExistsMessage = this.i18nService.t('auth.USER_ALREADY_EXISTS');
     const usernameAlreadyExistsMessage = this.i18nService.t('auth.USERNAME_ALREADY_EXISTS');
@@ -161,11 +159,10 @@ export class AuthService {
           }),
         ),
       ),
-      catchError((error: unknown) => {
-        if (isPrismaErrorCode(error, 'P2002')) {
-          // 根据冲突的唯一索引区分是用户名还是邮箱被占用，无法识别时回退到通用消息
-          const target = getUniqueConflictTarget(error);
-          const message = target.includes('username') ? usernameAlreadyExistsMessage : target.includes('email') ? emailAlreadyExistsMessage : userAlreadyExistsMessage;
+      catchError((error: Error) => {
+        if (isDatabaseErrorCode(error, PrismaKnownErrorCode.UniqueConstraintViolation)) {
+          const target = getDatabaseUniqueConflictTarget(error);
+          const message = target === 'user_username_key' ? usernameAlreadyExistsMessage : target === 'user_email_key' ? emailAlreadyExistsMessage : userAlreadyExistsMessage;
           return throwError(() => new ConflictException(message));
         }
         return throwError(() => error);

@@ -10,9 +10,11 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
 import { join } from 'node:path';
 import { appConfig } from './config/app.config';
-import { mysqlConfig } from './config/mysql.config';
+import { authJwtValidationSchema } from './config/jwt.config';
+import { mysqlConfig, mysqlValidationSchema } from './config/mysql.config';
 import { HealthModule } from './infrastructure/health/health.module';
 import { InfluxdbModule } from './infrastructure/influxdb';
+import { licenseValidationSchema } from './license/license.config';
 import { LicenseModule } from './license/license.module';
 import { AuthModule } from './module/auth/auth.module';
 import { UserModule } from './module/user/user.module';
@@ -21,7 +23,17 @@ const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.l
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: false, envFilePath, load: [appConfig, mysqlConfig] }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: false,
+      envFilePath,
+      load: [appConfig, mysqlConfig],
+      validationSchema: authJwtValidationSchema.concat(mysqlValidationSchema).concat(licenseValidationSchema),
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: false,
+      },
+    }),
     ThrottlerModule.forRoot({
       throttlers: [
         {

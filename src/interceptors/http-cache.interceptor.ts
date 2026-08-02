@@ -3,11 +3,6 @@ import { Reflector } from '@nestjs/core';
 import { Observable, of, tap } from 'rxjs';
 import { HTTP_CACHE_METADATA_KEY, HttpCacheOptions } from '../decorators/cache.decorator';
 
-interface CacheEntry {
-  expiresAt: number;
-  value: unknown;
-}
-
 /**
  * 轻量 HTTP 响应缓存拦截器。
  * 作用：
@@ -23,36 +18,26 @@ interface CacheEntry {
  */
 @Injectable()
 export class HttpCacheInterceptor implements NestInterceptor {
-  private readonly cache = new Map<string, CacheEntry>();
+  private readonly cache = new Map<string, { expiresAt: number; value: unknown }>();
 
   constructor(private readonly reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (context.getType() !== 'http') {
-      return next.handle();
-    }
+    if (context.getType() !== 'http') return next.handle();
 
     const options = this.reflector.getAllAndOverride<HttpCacheOptions>(HTTP_CACHE_METADATA_KEY, [context.getHandler(), context.getClass()]);
-    if (!options) {
-      return next.handle();
-    }
+    if (!options) return next.handle();
 
     const request = context.switchToHttp().getRequest<{ method: string; originalUrl?: string; url: string }>();
-    if (request.method !== 'GET') {
-      return next.handle();
-    }
+    if (request.method !== 'GET') return next.handle();
 
     const cacheKey = options.key ?? `${request.method}:${request.originalUrl ?? request.url}`;
     const now = Date.now();
     const entry = this.cache.get(cacheKey);
-    if (entry && entry.expiresAt > now) {
-      return of(entry.value);
-    }
+    if (entry && entry.expiresAt > now) return of(entry.value);
 
     const ttl = Math.max(options.ttl ?? 60, 0);
-    if (ttl === 0) {
-      return next.handle();
-    }
+    if (ttl === 0) return next.handle();
 
     return next.handle().pipe(
       tap((value) => {

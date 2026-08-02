@@ -1,0 +1,24 @@
+{
+  "VALIDATION": {
+    "CUSTOMER_REQUIRED": "Customer name is required",
+    "CUSTOMER_STRING": "Customer name must be a string",
+    "PRODUCT_REQUIRED": "Product name must not be empty",
+    "PRODUCT_STRING": "Product name must be a string",
+    "EDITION_ARRAY": "License editions must be an array",
+    "EDITION_REQUIRED": "At least one license edition must be selected",
+    "EDITION_ENUM": "License editions contain an unsupported value",
+    "EDITION_UNIQUE": "License editions must not contain duplicates",
+    "ISSUED_AT_INTEGER": "Issued time must be a Unix timestamp in integer milliseconds",
+    "ISSUED_AT_MIN": "Issued time must not be less than {constraints.0}",
+    "ISSUER_REQUIRED": "Issuer must not be empty",
+    "ISSUER_STRING": "Issuer must be a string",
+    "AUDIENCE_REQUIRED": "Target application must not be empty",
+    "AUDIENCE_STRING": "Target application must be a string",
+    "NOT_BEFORE_INTEGER": "Effective time must be a Unix timestamp in integer milliseconds",
+    "NOT_BEFORE_MIN": "Effective time must not be less than {constraints.0}",
+    "EXPIRES_AT_INTEGER": "Expiration time must be a Unix timestamp in integer milliseconds",
+    "EXPIRES_AT_MIN": "Expiration time must not be less than {constraints.0}",
+    "MACHINE_ID_REQUIRED": "Machine ID must not be empty",
+    "MACHINE_ID_STRING": "Machine ID must be a string"
+  }
+}

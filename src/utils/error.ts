@@ -223,9 +223,7 @@ export function toError(value: unknown, fallbackMessage = 'Unknown error'): Erro
 
 /** 获取任意抛出值的可读消息，无法提取时返回 fallbackMessage。 */
 export function getErrorMessage(error: unknown, fallbackMessage = 'Unknown error'): string {
-  if (typeof error === 'string' && error.length > 0) {
-    return error;
-  }
+  if (typeof error === 'string' && error.length > 0) return error;
   if (isErrorLike(error)) {
     const message = readProperty(error, 'message');
     return typeof message === 'string' && message.length > 0 ? message : fallbackMessage;

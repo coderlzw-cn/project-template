@@ -1,6 +1,6 @@
 import { AuthUser } from '@/decorators/auth-user.decoratior';
 import { Public } from '@/decorators/public.decorator';
-import { SkipLicense } from '@/license/skip-license.decorator';
+import { SkipLicenseCheck } from '@/license/skip-license.decorator';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -18,7 +18,7 @@ const getSessionMetadata = (request: Request) => ({
   userAgent: request.get('user-agent'),
 });
 
-@SkipLicense()
+@SkipLicenseCheck()
 @ApiTags('认证')
 @Controller('auth')
 export class AuthController {

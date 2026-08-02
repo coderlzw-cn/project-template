@@ -12,7 +12,7 @@ services:
       PORT: 3000
       PREFIX_API: api
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${PORT:-3000}:3000"
     healthcheck:
       test:
         [

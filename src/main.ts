@@ -1,3 +1,4 @@
+import '@/license/utils/machine';
 import { ConsoleLogger, INestApplication, Logger, LogLevel, RequestMethod, VersioningType } from '@nestjs/common';
 import { HttpAdapterHost, NestApplication, NestFactory, Reflector } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
@@ -20,7 +21,6 @@ import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middlew
 import { RequestContextMiddleware } from './middleware/request-context.middleware';
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
-
 declare const module: {
   hot?: {
     accept(): void;
@@ -71,7 +71,7 @@ const logLevels: LogLevel[] = isProduction ? ['log', 'warn', 'error', 'fatal'] :
 
 async function bootstrap() {
   const app = await NestFactory.create<NestApplication>(AppModule, {
-    logger: new ConsoleLogger({ json: isProduction, colors: !isProduction, logLevels, prefix: 'demo' }),
+    logger: new ConsoleLogger({ json: isProduction, colors: !isProduction, logLevels }),
     cors: true,
     // 如果你的 AppModule 初始化非常慢（比如连接数据库很久），这期间产生的日志可能会丢失或乱序。开启 bufferLogs 可以让 Nest 收集所有启动日志，直到 Logger 准备就绪后再一次性打印。
     bufferLogs: true,
@@ -167,8 +167,8 @@ async function bootstrap() {
   Logger.log(`Swagger is running on: ${await app.getUrl()}/swagger`, 'Bootstrap');
 
   if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(() => app.close());
+    module.hot?.accept();
+    module.hot?.dispose(() => app.close());
   }
 }
 void bootstrap();

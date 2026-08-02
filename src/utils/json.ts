@@ -83,6 +83,14 @@ export interface StringifyJsonOptions {
    * @default false
    */
   readonly sortKeys?: boolean;
+  /**
+   * 是否递归忽略对象中值为 `undefined` 或 `null` 的字段。
+   *
+   * 仅影响对象属性；顶层值和数组元素仍遵循底层序列化器的标准行为。
+   *
+   * @default false
+   */
+  readonly omitNullish?: boolean;
 }
 
 /** 解析并重新输出 JSON 文本时使用的格式化配置。 */
@@ -239,7 +247,8 @@ export function isValidJsonObject(text: string, options: ParseJsonOptions = {}) 
  *
  * 与原生 `JSON.stringify` 一样，顶层的 `undefined`、函数和 Symbol 可能得到
  * `undefined`，循环引用会抛出异常。`sortKeys` 只调整对象属性顺序，不会改变
- * 数组顺序；与属性白名单同时使用时，会先过滤属性再排序。
+ * 数组顺序；与属性白名单同时使用时，会先过滤属性再排序。启用
+ * `omitNullish` 后会递归丢弃对象中的 `undefined` 和 `null` 字段，但不改变数组位置。
  *
  * @param value 待序列化的 JavaScript 值。
  * @param options 输出格式、属性转换、缩进和键排序配置。
@@ -248,10 +257,10 @@ export function isValidJsonObject(text: string, options: ParseJsonOptions = {}) 
  * @throws {RangeError} `format` 或数值缩进无效时抛出。
  */
 export function stringifyJson(value: unknown, options: StringifyJsonOptions = {}) {
-  const { format = 'json', replacer, space, sortKeys = false } = options;
-  assertStringifyOptions(format, replacer, space, sortKeys);
+  const { format = 'json', replacer, space, sortKeys = false, omitNullish = false } = options;
+  assertStringifyOptions(format, replacer, space, sortKeys, omitNullish);
 
-  const effectiveReplacer = createReplacer(replacer, sortKeys);
+  const effectiveReplacer = createReplacer(replacer, sortKeys, omitNullish);
   if (format === 'json') {
     return Array.isArray(effectiveReplacer) ? JSON.stringify(value, effectiveReplacer, space) : JSON.stringify(value, effectiveReplacer as JsonReplacer | undefined, space);
   }
@@ -283,19 +292,27 @@ export function formatJson(text: string, options: FormatJsonOptions = {}) {
   return formatted;
 }
 
-function createReplacer(replacer: JsonReplacer | readonly (string | number)[] | undefined, sortKeys: boolean) {
-  // 不排序时仅复制属性白名单，避免序列化期间意外依赖调用方后续修改的数组。
-  if (!sortKeys) {
+function createReplacer(replacer: JsonReplacer | readonly (string | number)[] | undefined, sortKeys: boolean, omitNullish: boolean) {
+  // 无需组合额外行为时保留底层序列化器的原生 replacer 处理方式。
+  if (!sortKeys && !omitNullish) {
     return isKeyList(replacer) ? [...replacer] : replacer;
   }
 
   const allowedKeys = isKeyList(replacer) ? new Set(replacer.map((key) => String(key))) : undefined;
   const replacerFunction = typeof replacer === 'function' ? replacer : undefined;
   const sortedObjects = new WeakMap<object, Record<string, unknown>>();
+  let isRootCall = true;
 
   return function sortingReplacer(this: unknown, key: string, currentValue: unknown) {
     // 保持原生语义：先应用调用方的 replacer，再决定是否需要排序转换后的对象。
     const replacedValue = replacerFunction ? replacerFunction.call(this, key, currentValue) : currentValue;
+    const isRootValue = isRootCall;
+    isRootCall = false;
+
+    // 对象字段可被真正省略；数组元素返回 undefined 仍会输出为 null，因此保持标准语义。
+    if (omitNullish && !isRootValue && !Array.isArray(this) && replacedValue == null) {
+      return undefined;
+    }
 
     if (!isJsonObject(replacedValue)) {
       return replacedValue;
@@ -308,12 +325,11 @@ function createReplacer(replacer: JsonReplacer | readonly (string | number)[] | 
 
     // 通过按序重新插入属性构造浅对象；后续递归和值序列化仍交给底层序列化器。
     // WeakMap 保证共享引用复用同一个代理对象，同时不会阻止源对象被垃圾回收。
-    const sortedObject = Object.fromEntries(
-      Object.keys(objectValue)
-        .filter((propertyKey) => allowedKeys === undefined || allowedKeys.has(propertyKey))
-        .sort((first, second) => first.localeCompare(second))
-        .map((propertyKey) => [propertyKey, objectValue[propertyKey]] as const),
-    );
+    const propertyKeys = Object.keys(objectValue).filter((propertyKey) => allowedKeys === undefined || allowedKeys.has(propertyKey));
+    if (sortKeys) {
+      propertyKeys.sort((first, second) => first.localeCompare(second));
+    }
+    const sortedObject = Object.fromEntries(propertyKeys.map((propertyKey) => [propertyKey, objectValue[propertyKey]] as const));
 
     sortedObjects.set(objectValue, sortedObject);
     return sortedObject;
@@ -346,7 +362,13 @@ function assertParseOptions(text: string, format: JsonFormat, reviver: JsonReviv
   }
 }
 
-function assertStringifyOptions(format: JsonFormat, replacer: JsonReplacer | readonly (string | number)[] | undefined, space: string | number | undefined, sortKeys: boolean) {
+function assertStringifyOptions(
+  format: JsonFormat,
+  replacer: JsonReplacer | readonly (string | number)[] | undefined,
+  space: string | number | undefined,
+  sortKeys: boolean,
+  omitNullish: boolean,
+) {
   assertJsonFormat(format);
   if (replacer !== undefined && typeof replacer !== 'function' && !Array.isArray(replacer)) {
     throw new TypeError('replacer must be a function or an array of property names');
@@ -362,6 +384,9 @@ function assertStringifyOptions(format: JsonFormat, replacer: JsonReplacer | rea
   }
   if (typeof sortKeys !== 'boolean') {
     throw new TypeError('sortKeys must be a boolean');
+  }
+  if (typeof omitNullish !== 'boolean') {
+    throw new TypeError('omitNullish must be a boolean');
   }
 }
 

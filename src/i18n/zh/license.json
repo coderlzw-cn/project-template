@@ -1,0 +1,24 @@
+{
+  "VALIDATION": {
+    "CUSTOMER_REQUIRED": "客户名称不能为空",
+    "CUSTOMER_STRING": "客户名称必须是字符串",
+    "PRODUCT_REQUIRED": "产品名称不能为空",
+    "PRODUCT_STRING": "产品名称必须是字符串",
+    "EDITION_ARRAY": "授权套餐必须是数组",
+    "EDITION_REQUIRED": "至少需要选择一个授权套餐",
+    "EDITION_ENUM": "授权套餐包含不支持的值",
+    "EDITION_UNIQUE": "授权套餐不能重复",
+    "ISSUED_AT_INTEGER": "签发时间必须是 Unix 毫秒整数",
+    "ISSUED_AT_MIN": "签发时间不能小于 {constraints.0}",
+    "ISSUER_REQUIRED": "签发方不能为空",
+    "ISSUER_STRING": "签发方必须是字符串",
+    "AUDIENCE_REQUIRED": "目标程序不能为空",
+    "AUDIENCE_STRING": "目标程序必须是字符串",
+    "NOT_BEFORE_INTEGER": "开始生效时间必须是 Unix 毫秒整数",
+    "NOT_BEFORE_MIN": "开始生效时间不能小于 {constraints.0}",
+    "EXPIRES_AT_INTEGER": "过期时间必须是 Unix 毫秒整数",
+    "EXPIRES_AT_MIN": "过期时间不能小于 {constraints.0}",
+    "MACHINE_ID_REQUIRED": "机器码不能为空",
+    "MACHINE_ID_STRING": "机器码必须是字符串"
+  }
+}

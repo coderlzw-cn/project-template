@@ -1,3 +1,4 @@
+import { SkipLicenseCheck } from '@/license/skip-license.decorator';
 import { Controller, Get, VERSION_NEUTRAL, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DiskHealthIndicator, HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
@@ -10,6 +11,7 @@ import { EventLoopHealthIndicator } from './event-loop.health-indicator';
 
 @ApiTags('Health')
 @Public()
+@SkipLicenseCheck()
 @SkipThrottle()
 @SkipTransform()
 @Controller('health')

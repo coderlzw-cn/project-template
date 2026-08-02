@@ -8,6 +8,9 @@ export const appConfig = registerAs('app', () => ({
   env: getEnvStr('NODE_ENV', 'development'),
 }));
 
-export const licenseConfig = registerAs('license', () => ({
-  path: getEnvStr('LICENSE_PATH', 'license/license.json'),
+export const systemConfig = registerAs('system', () => ({
+  timezone: getEnvStr('TIMEZONE', 'Asia/Shanghai'),
+  locale: getEnvStr('LOCALE', 'zh-CN'),
+  logLevel: getEnvStr('LOG_LEVEL', 'info'),
+  password: getEnvStr('SYSTEM_PASSWORD', '1'),
 }));

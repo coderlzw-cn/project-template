@@ -11,7 +11,6 @@ import { Request } from 'express';
  * @User('id')
  */
 export const AuthUser = createParamDecorator((data: keyof AuthUserPayload | undefined, ctx: ExecutionContext) => {
-  const request = ctx.switchToHttp().getRequest<Request>();
-  const user = request.user;
+  const user = ctx.switchToHttp().getRequest<Request>().authInfo;
   return data ? user?.[data] : user;
 });

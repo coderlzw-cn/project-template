@@ -11,17 +11,15 @@ export class LicenseGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext) {
-    const skipLicense = this.reflector.getAllAndOverride<boolean>(SKIP_LICENSE_KEY, [context.getHandler(), context.getClass()]);
-    if (skipLicense) return true;
+    const shouldSkipLicenseCheck = this.reflector.getAllAndOverride<boolean>(SKIP_LICENSE_KEY, [context.getHandler(), context.getClass()]);
+    if (shouldSkipLicenseCheck) return true;
 
-    const status = this.licenseService.getStatus();
+    const isLicenseValid = this.licenseService.isLicenseValid();
 
-    if (status.valid) return true;
+    if (isLicenseValid.status) return true;
 
     throw new ServiceUnavailableException({
-      code: 'LICENSE_UNAVAILABLE',
-      message: 'Application License is unavailable',
-      state: status.state,
+      message: isLicenseValid.message ?? '许可证不可用',
     });
   }
 }

@@ -20,11 +20,11 @@ model User {
   /// 用户ID，自增主键
   id                  Int           @id @default(autoincrement())
   /// 用户名，全局唯一，用于登录
-  username            String        @unique
+  username            String        @unique(map: "user_username_key")
   /// 密码的 bcrypt 哈希值（不存明文）
   password            String
   /// 邮箱，可选，全局唯一
-  email               String?       @unique
+  email               String?       @unique(map: "user_email_key")
   /// 用户角色，默认普通用户
   role                UserRole      @default(USER)
   /// 连续登录失败次数，登录成功或触发锁定后清零
@@ -48,7 +48,7 @@ model AuthSession {
   /// 所属用户ID
   userId           Int       @map("user_id")
   /// refresh token 的 SHA-256 哈希值（不存原始令牌），刷新时轮换
-  refreshTokenHash String    @unique @map("refresh_token_hash") @db.Char(64)
+  refreshTokenHash String    @unique(map: "auth_session_refresh_token_hash_key") @map("refresh_token_hash") @db.Char(64)
   /// 会话过期时间，超过后 refresh token 不可用
   expiresTime      DateTime  @map("expires_time")
   /// 撤销时间，非空表示会话已注销（注销/改密/超额淘汰），保留一段时间用于审计

@@ -1,13 +1,5 @@
-import type { KeyObject } from 'node:crypto';
-
-// license 的状态
-export type LicenseState = 'valid' | 'missing' | 'invalid' | 'not-yet-valid' | 'expired';
-
-export interface LicenseStatus {
-  valid: boolean;
-  state: LicenseState;
-  reason?: string;
-  claims?: LicenseClaims;
+export enum LicenseEdition {
+  Enterprise = 'enterprise',
 }
 
 /** License 文件的外层签名封装。 */
@@ -27,9 +19,9 @@ export interface LicenseClaims {
   /** 产品名称。 */
   product: string;
   /** 产品版本或授权套餐。 */
-  edition?: string;
+  edition?: LicenseEdition[];
   /** 功能授权表。 */
-  features?: Record<string, boolean>;
+  // features?: Record<string, boolean>;
   /** 签发时间，Unix 毫秒。 */
   issued_at: number;
   /** 开始生效时间，Unix 毫秒。 */
@@ -44,32 +36,17 @@ export interface LicenseClaims {
   audience: string;
 }
 
-/** License 验证选项。 */
-export interface VerifyOptions {
-  /** 已由资源加载层读取并完成外层结构检查的 License Envelope。 */
-  envelope: LicenseEnvelope;
-  /** 已由资源加载层创建的公钥对象。 */
-  publicKey: KeyObject;
-  /** 要求完全匹配的产品名称。 */
-  product?: string;
-  /** 要求完全匹配的目标使用程序。 */
-  audience?: string;
-  /** 当前机器码。 */
-  machineId?: string;
-  /** 当前 Unix 毫秒，默认使用 Date.now()。 */
-  now?: number;
-  /** 允许的时钟误差毫秒数。 */
+export interface LicenseClaimsValidationOptions {
+  /** 当前设备机器码，用于硬件绑定校验 */
+  currentMachineId?: string;
+  /** 当前时间戳(ms)，不传默认使用 Date.now() */
+  currentTimestamp: number;
+  /** 产品标识，用于匹配许可证产品字段 */
+  expectedProduct?: string;
+  /** 受众标识，用于匹配许可证受众字段 */
+  expectedAudience?: string;
+  /** 时钟偏差容忍毫秒数，解决设备时间不一致问题 */
   clockSkewMs?: number;
-}
-
-/** 未验签的 License 查看结果。 */
-export interface InspectResult {
-  /** 固定为 false，表示内容未经验证。 */
-  verified: false;
-  /** 未验签安全警告。 */
-  warning: string;
-  /** License 外层封装。 */
-  envelope: LicenseEnvelope;
-  /** 未经验证的 Claims。 */
-  claims: LicenseClaims;
+  /** 客户名称 */
+  expectedCustomer: string;
 }
