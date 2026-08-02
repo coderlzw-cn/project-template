@@ -1,0 +1,5 @@
+{
+  // 团队推荐扩展：打开项目时编辑器会提示安装
+  // oxc.oxc-vscode：提供 oxlint 实时检查 + oxfmt 格式化（兼容 VS Code / Cursor）
+  "recommendations": ["oxc.oxc-vscode"]
+}

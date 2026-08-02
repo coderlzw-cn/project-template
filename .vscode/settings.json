@@ -1,0 +1,5 @@
+{
+  // 统一用 oxc 扩展（内部调用项目里的 oxfmt）作为默认格式化器，保存时自动格式化
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true
+}
