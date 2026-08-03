@@ -1,0 +1,9 @@
+{
+  "welcome": "欢迎",
+  "confirm": "确认",
+  "cancel": "取消",
+  "hello": "你好 {{name}}",
+  "item_one": "{{count}} 个项目",
+  "item_other": "{{count}} 个项目",
+  "desc": "请点击 <1>这里</1> 查看详情"
+}

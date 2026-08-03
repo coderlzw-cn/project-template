@@ -12,23 +12,14 @@ declare module "axios" {
 /**
  * 只要是这些类型，就直接返回原始数据，不进行 { code, message, data } 解包
  */
-type RawData =
-  | Blob
-  | ReadableStream
-  | ArrayBuffer
-  | FormData
-  | URLSearchParams
-  | string
-  | void;
+type RawData = Blob | ReadableStream | ArrayBuffer | FormData | URLSearchParams | string | void;
 
 /**
  * T: 业务数据类型
  * 如果想返回完全自定义的 JSON 结构，可以将 T 设置为这种结构的接口，并确保它不属于 RawData
  */
 export type ApiResponse<T = void> = Promise<
-  AxiosResponse<
-    T extends RawData ? T : { code: number; message: string; data: T }
-  >
+  AxiosResponse<T extends RawData ? T : { code: number; message: string; data: T }>
 >;
 
 const http = axios.create({
@@ -41,10 +32,7 @@ const HTTP_ERROR_MESSAGE_THROTTLE_MS = 3000;
 /** 这些接口通常由定时任务调用，失败时不弹出全局 message。 */
 const SILENT_ERROR_PATHS = new Set(["/metrics/delay", "/metrics/doppler"]);
 
-function isSilentErrorRequest(config?: {
-  url?: string;
-  silentError?: boolean;
-}) {
+function isSilentErrorRequest(config?: { url?: string; silentError?: boolean }) {
   if (config?.silentError) {
     return true;
   }
@@ -54,9 +42,7 @@ function isSilentErrorRequest(config?: {
   }
 
   const pathname = new URL(config.url, window.location.origin).pathname;
-  return Array.from(SILENT_ERROR_PATHS).some(
-    (path) => pathname === path || pathname.endsWith(path),
-  );
+  return Array.from(SILENT_ERROR_PATHS).some(path => pathname === path || pathname.endsWith(path));
 }
 
 let lastHttpErrorMessage = {
@@ -64,11 +50,7 @@ let lastHttpErrorMessage = {
   time: 0,
 };
 
-function showHttpErrorMessage(options: {
-  title: string;
-  description: string;
-  dedupeKey?: string;
-}) {
+function showHttpErrorMessage(options: { title: string; description: string; dedupeKey?: string }) {
   const now = Date.now();
   const key = options.dedupeKey ?? options.description;
 
@@ -82,7 +64,7 @@ function showHttpErrorMessage(options: {
   lastHttpErrorMessage = { key, time: now };
 }
 
-http.interceptors.request.use((config) => {
+http.interceptors.request.use(config => {
   if (config.skipApiPrefix) {
     config.baseURL = import.meta.env.BASE_URL;
   }
@@ -91,7 +73,7 @@ http.interceptors.request.use((config) => {
 });
 
 http.interceptors.response.use(
-  (response) => {
+  response => {
     const { data } = response;
 
     // 判断是否是符合约定的标准后端统一响应结构
@@ -114,7 +96,7 @@ http.interceptors.response.use(
     // 非标准结构（如：文件流、非约定的第三方接口），直接返回原始 response 或 data
     return response;
   },
-  (error) => {
+  error => {
     // 4. 完善错误处理，兼容断网、超时等无 response 的情况
     let errorMsg = "网络连接异常，请稍后再试";
 
@@ -130,10 +112,7 @@ http.interceptors.response.use(
       if (status === 401) {
         // 例如：清除 token 并跳转登录页
       }
-    } else if (
-      error.code === "ECONNABORTED" &&
-      error.message.includes("timeout")
-    ) {
+    } else if (error.code === "ECONNABORTED" && error.message.includes("timeout")) {
       errorMsg = "请求超时，请检查网络后重试";
     }
     if (!isSilentErrorRequest(error.config)) {

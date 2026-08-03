@@ -1,0 +1,9 @@
+{
+  "welcome": "Welcome",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "hello": "Hello {{name}}",
+  "item_one": "{{count}} item",
+  "item_other": "{{count}} items",
+  "desc": "Please click <1>here</1> for more details"
+}
