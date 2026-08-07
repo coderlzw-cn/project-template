@@ -5,7 +5,7 @@ export const HTTP_CACHE_METADATA_KEY = 'httpCacheOptions';
 export interface HttpCacheOptions {
   /** 缓存时间，单位秒 */
   ttl?: number;
-  /** 自定义缓存 key；不传时使用 method + originalUrl */
+  /** 自定义缓存 key；不传时使用 method + originalUrl。最终 key 会自动追加当前响应语言。 */
   key?: string;
 }
 

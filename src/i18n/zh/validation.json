@@ -1,4 +1,0 @@
-{
-  "PAGE_MIN": "页码必须大于或等于 {constraints.0}",
-  "INTEGER": "{property} 必须为整数"
-}

@@ -1,4 +1,10 @@
 {
+  "KEY_PAIR_GENERATED": "密钥对生成成功",
+  "LICENSE_ISSUED": "许可证签发成功",
+  "MACHINE_ID_NOT_FOUND": "机器码不存在",
+  "MACHINE_ID_READ_FAILED": "获取机器码失败",
+  "ISSUE_FAILED": "许可证签发失败",
+  "UNAVAILABLE": "许可证不可用",
   "VALIDATION": {
     "CUSTOMER_REQUIRED": "客户名称不能为空",
     "CUSTOMER_STRING": "客户名称必须是字符串",

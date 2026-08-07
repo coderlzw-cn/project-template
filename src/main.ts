@@ -17,6 +17,7 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { SerializeInterceptor } from './interceptors/serialize.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { LocaleResponseMiddleware } from './middleware/locale-response.middleware';
 import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
 import { RequestContextMiddleware } from './middleware/request-context.middleware';
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
@@ -91,6 +92,7 @@ async function bootstrap() {
 
   // 请求上下文和访问日志需早于 Body Parser，确保非法 JSON 请求也有 requestId 和访问日志。
   app.use(I18nMiddleware);
+  app.use(LocaleResponseMiddleware);
   app.use(RequestContextMiddleware);
   app.use(RequestLoggerMiddleware);
 

@@ -1,0 +1,19 @@
+{
+  // 使用 .vscode/i18n-ally-custom-framework.yml 识别 nestjs-i18n 的翻译调用。
+  "i18n-ally.enabledFrameworks": ["custom"],
+
+  // 仅扫描源码中的语言资源，避免加载 coverage、dist 等生成目录。
+  "i18n-ally.localesPaths": ["src/i18n"],
+
+  // 将文件名作为命名空间，例如 auth.json 对应 auth.* 翻译键。
+  "i18n-ally.namespace": true,
+
+  // 匹配 src/i18n/zh/auth.json 这类“语言/命名空间”目录结构。
+  "i18n-ally.pathMatcher": "{locale}/{namespace}.json",
+
+  // 使用 common.HTTP_ERROR.400 形式的嵌套键。
+  "i18n-ally.keystyle": "nested",
+
+  // 新增翻译键时以中文资源作为源语言。
+  "i18n-ally.sourceLanguage": "zh"
+}

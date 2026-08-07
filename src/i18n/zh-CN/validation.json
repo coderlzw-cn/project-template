@@ -1,0 +1,7 @@
+{
+  "PAGE_MIN": "页码必须大于或等于 {constraints.0}",
+  "PAGE_SIZE_MIN": "每页条数必须大于或等于 {constraints.0}",
+  "PAGE_SIZE_MAX": "每页条数不能超过 {constraints.0}",
+  "OFFSET_MIN": "偏移量不能小于 {constraints.0}",
+  "INTEGER": "{property} 必须为整数"
+}

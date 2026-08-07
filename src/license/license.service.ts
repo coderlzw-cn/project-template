@@ -4,6 +4,7 @@ import { HttpException, Inject, Injectable, InternalServerErrorException, Logger
 import type { ConfigType } from '@nestjs/config';
 import * as chokidar from 'chokidar';
 import { EventName, EVENTS } from 'chokidar/handler.js';
+import { I18nService } from 'nestjs-i18n';
 import crypto from 'node:crypto';
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { catchError, defer, map, of } from 'rxjs';
@@ -35,6 +36,7 @@ export class LicenseService implements OnModuleDestroy {
     private readonly licenseConfiguration: ConfigType<typeof licenseConfig>,
     @Inject(systemConfig.KEY)
     private readonly systemConfiguration: ConfigType<typeof systemConfig>,
+    private readonly i18nService: I18nService,
   ) {
     try {
       this.machineId = generateMachineId(this.systemConfiguration.password);
@@ -136,7 +138,7 @@ export class LicenseService implements OnModuleDestroy {
       const { privateKeyPem, publicKeyPem } = generateLicenseKeyPair();
       writeLicensePrivateKey(this.licenseConfiguration.privateKeyPath, privateKeyPem, true);
       writeLicensePublicKey(this.licenseConfiguration.publicKeyPath, publicKeyPem, true);
-      return of(ResponseResult.success('生成成功'));
+      return of(ResponseResult.success(this.i18nService.t('license.KEY_PAIR_GENERATED')));
     }).pipe(
       catchError((error: unknown) => {
         this.logger.error(`检查密钥对或公钥是否存在失败: ${error instanceof Error ? error.message : String(error)}`);
@@ -148,13 +150,13 @@ export class LicenseService implements OnModuleDestroy {
   getMachineId() {
     return of(this.machineId).pipe(
       map((v) => {
-        if (!v) throw new InternalServerErrorException('机器码不存在');
+        if (!v) throw new InternalServerErrorException(this.i18nService.t('license.MACHINE_ID_NOT_FOUND'));
         return v;
       }),
       catchError((error: unknown) => {
         this.logger.error(`获取机器码失败: ${error instanceof Error ? error.message : String(error)}`);
         if (error instanceof HttpException) throw error;
-        throw new Error('获取机器码失败');
+        throw new InternalServerErrorException(this.i18nService.t('license.MACHINE_ID_READ_FAILED'));
       }),
     );
   }
@@ -188,11 +190,11 @@ export class LicenseService implements OnModuleDestroy {
       const payloadBase64 = encodeBase64UrlText(stringifyJson(licenseClaims));
       const signature = crypto.sign(null, Buffer.from(payloadBase64, 'utf8'), privateKey);
       writeFileSync(this.licenseConfiguration.licenseFilePath, JSON.stringify({ payload: payloadBase64, signature: encodeBase64Url(signature) }, null, 2), 'utf8');
-      return of(ResponseResult.success('签发成功'));
+      return of(ResponseResult.success(this.i18nService.t('license.LICENSE_ISSUED')));
     }).pipe(
       catchError((error: unknown) => {
         this.logger.error(`License 签发失败: ${error instanceof Error ? error.message : String(error)}`);
-        throw new Error('签发失败');
+        throw new InternalServerErrorException(this.i18nService.t('license.ISSUE_FAILED'));
       }),
     );
   }

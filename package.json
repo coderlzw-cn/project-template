@@ -7,8 +7,8 @@
   "license": "UNLICENSED",
   "packageManager": "pnpm@11.11.0",
   "scripts": {
-    "dev": "NODE_ENV=development nest build --webpack --webpackPath webpack.config.cjs --watch",
-    "dev:debug": "NODE_ENV=development DEBUG_PORT=9229 nest build --webpack --webpackPath webpack.config.cjs --watch",
+    "dev": "NODE_ENV=development nest build --webpack --webpackPath webpack.config.cjs --watch --watchAssets",
+    "dev:debug": "NODE_ENV=development DEBUG_PORT=9229 nest build --webpack --webpackPath webpack.config.cjs --watch --watchAssets",
     "build": "NODE_ENV=production nest build --webpack --webpackPath webpack.config.cjs",
     "start": "nest start --webpackPath webpack.config.cjs",
     "start:debug": "nest start --debug --watch --webpackPath webpack.config.cjs",

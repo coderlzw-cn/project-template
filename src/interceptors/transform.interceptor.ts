@@ -3,6 +3,7 @@ import { HTTP_CODE_METADATA, REDIRECT_METADATA, SSE_METADATA } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import { map, Observable } from 'rxjs';
 import { SKIP_TRANSFORM_KEY } from '../decorators/skip-transform.decorator';
+import { translateMessage } from '../utils/i18n';
 
 export interface ApiResponse<T = any> {
   message: string;
@@ -32,7 +33,7 @@ export class ResponseResult<T = void> {
   static success(): ResponseResult<void>;
   static success(message: string, code?: number): ResponseResult<void>;
   static success<D>(data: D, message?: string, code?: number): ResponseResult<D>;
-  static success<D>(dataOrMessage?: D | string, messageOrCode: string | number = 'Operation successful', code = 200): ResponseResult<any> {
+  static success<D>(dataOrMessage?: D | string, messageOrCode?: string | number, code = 200): ResponseResult<any> {
     // 情况 A：仅传字符串 message，例如 success('更新成功')
     if (typeof dataOrMessage === 'string') {
       const customCode = typeof messageOrCode === 'number' ? messageOrCode : 200;
@@ -41,11 +42,11 @@ export class ResponseResult<T = void> {
 
     // 情况 B：没传参，例如 success()
     if (dataOrMessage === undefined) {
-      return new ResponseResult<void>('Operation successful', 200);
+      return new ResponseResult<void>(translateMessage('common.SUCCESS', '请求成功'), 200);
     }
 
     // 情况 C：传了 data，例如 success(data, '更新成功')
-    const msg = typeof messageOrCode === 'string' ? messageOrCode : 'Operation successful';
+    const msg = typeof messageOrCode === 'string' ? messageOrCode : translateMessage('common.SUCCESS', '请求成功');
     return new ResponseResult<D>(msg, code, dataOrMessage);
   }
 
@@ -53,8 +54,8 @@ export class ResponseResult<T = void> {
    * 3. 失败/自定义状态码响应
    * - ResponseResult.fail('更新失败', 3001) -> { message: "更新失败", code: 3001 }
    */
-  static fail(message = 'Operation failed', code = 400): ResponseResult<void> {
-    return new ResponseResult<void>(message, code);
+  static fail(message?: string, code = 400): ResponseResult<void> {
+    return new ResponseResult<void>(message ?? translateMessage('common.OPERATION_FAILED', '操作失败'), code);
   }
 
   /**
@@ -143,7 +144,7 @@ export class TransformInterceptor implements NestInterceptor<unknown, unknown> {
       const record = data as Record<string, unknown>;
       const keys = Object.keys(record);
       const hasOwnMessage = Object.hasOwn(record, 'message');
-      const message = typeof record.message === 'string' && record.message.length > 0 ? record.message : '请求成功';
+      const message = typeof record.message === 'string' && record.message.length > 0 ? record.message : translateMessage('common.SUCCESS', '请求成功');
 
       // 3.1 兼容 controller 返回纯 { message: "更新成功" }
       if (hasOwnMessage && keys.length === 1) {
@@ -175,7 +176,7 @@ export class TransformInterceptor implements NestInterceptor<unknown, unknown> {
     // 4. 其它未手动包装的普通返回值（如字符串、数组、标准 DTO），自动补充默认格式
     const result: ApiResponse<unknown> = {
       code: httpCode,
-      message: '请求成功',
+      message: translateMessage('common.SUCCESS', '请求成功'),
     };
 
     if (data !== undefined && data !== null) {

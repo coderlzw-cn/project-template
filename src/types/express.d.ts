@@ -12,6 +12,8 @@ declare global {
 
     interface Request {
       clientIp?: string;
+      /** nestjs-i18n 根据请求头解析后的规范化语言。 */
+      i18nLang?: string;
       requestId: string;
     }
   }

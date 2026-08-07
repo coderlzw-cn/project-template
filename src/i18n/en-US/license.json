@@ -1,4 +1,10 @@
 {
+  "KEY_PAIR_GENERATED": "Signing key pair generated successfully",
+  "LICENSE_ISSUED": "License issued successfully",
+  "MACHINE_ID_NOT_FOUND": "Machine ID was not found",
+  "MACHINE_ID_READ_FAILED": "Failed to retrieve the machine ID",
+  "ISSUE_FAILED": "Failed to issue the license",
+  "UNAVAILABLE": "The license is unavailable",
   "VALIDATION": {
     "CUSTOMER_REQUIRED": "Customer name is required",
     "CUSTOMER_STRING": "Customer name must be a string",

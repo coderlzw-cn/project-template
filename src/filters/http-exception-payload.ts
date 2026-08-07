@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { I18nContext, I18nValidationException, type I18nValidationError } from 'nestjs-i18n';
+import { I18nValidationException, type I18nValidationError } from 'nestjs-i18n';
 import { isProduction } from '../utils/env';
+import { translateMessage } from '../utils/i18n';
 
 export interface HttpExceptionPayload {
   message: string | string[];
@@ -48,5 +49,5 @@ export function payloadFromHttpException(exception: HttpException): HttpExceptio
 export function sanitizePayloadForProduction(status: number, payload: HttpExceptionPayload): HttpExceptionPayload {
   if (!isProduction) return payload;
   if (!CLIENT_INPUT_ERROR_STATUS.has(status)) return payload;
-  return { message: I18nContext.current()?.t('common.HTTP_ERROR.400') ?? '请求参数有误' };
+  return { message: translateMessage('common.HTTP_ERROR.400', '请求参数有误') };
 }

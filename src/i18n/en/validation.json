@@ -1,4 +1,0 @@
-{
-  "PAGE_MIN": "Page must be at least {constraints.0}",
-  "INTEGER": "{property} must be an integer"
-}

@@ -1,6 +1,10 @@
 import { Prisma } from '@/generated/prisma/client';
 import { HttpStatus } from '@nestjs/common';
 import { isProduction } from '../utils/env';
+import { translateMessage } from '../utils/i18n';
+
+/** 数据库诊断信息留在日志中；该函数只生成适合返回给客户端的本地化文案。 */
+const databaseMessage = (key: string, fallback: string) => translateMessage(`common.DATABASE_ERROR.${key}`, fallback);
 
 /** 当前应用需要识别的 Prisma 已知请求错误码。 */
 export enum PrismaKnownErrorCode {
@@ -148,54 +152,54 @@ export function resolveDatabaseError(exception: unknown): { status: HttpStatus; 
     if (!PRISMA_KNOWN_ERROR_CODES.has(errorCode)) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: isProduction ? '数据库操作失败，请稍后重试' : exception.message,
+        message: isProduction ? databaseMessage('OPERATION_FAILED', '数据库操作失败，请稍后重试') : exception.message,
       };
     }
 
     switch (errorCode) {
       case PrismaKnownErrorCode.UniqueConstraintViolation:
-        return { status: HttpStatus.CONFLICT, message: '数据已存在，请勿重复提交' };
+        return { status: HttpStatus.CONFLICT, message: databaseMessage('DUPLICATE', '数据已存在，请勿重复提交') };
       case PrismaKnownErrorCode.ForeignKeyConstraintViolation:
-        return { status: HttpStatus.CONFLICT, message: '数据存在关联，操作失败' };
+        return { status: HttpStatus.CONFLICT, message: databaseMessage('RELATION_CONFLICT', '数据存在关联，操作失败') };
       case PrismaKnownErrorCode.NullConstraintViolation:
-        return { status: HttpStatus.BAD_REQUEST, message: '必填数据不能为空' };
+        return { status: HttpStatus.BAD_REQUEST, message: databaseMessage('REQUIRED_VALUE', '必填数据不能为空') };
       case PrismaKnownErrorCode.ValueTooLong:
-        return { status: HttpStatus.BAD_REQUEST, message: '字段内容超过允许的长度' };
+        return { status: HttpStatus.BAD_REQUEST, message: databaseMessage('VALUE_TOO_LONG', '字段内容超过允许的长度') };
       case PrismaKnownErrorCode.ValueOutOfRange:
-        return { status: HttpStatus.BAD_REQUEST, message: '字段数值超出允许范围' };
+        return { status: HttpStatus.BAD_REQUEST, message: databaseMessage('VALUE_OUT_OF_RANGE', '字段数值超出允许范围') };
       case PrismaKnownErrorCode.RecordNotFound:
-        return { status: HttpStatus.NOT_FOUND, message: '数据不存在或已被删除' };
+        return { status: HttpStatus.NOT_FOUND, message: databaseMessage('NOT_FOUND', '数据不存在或已被删除') };
       case PrismaKnownErrorCode.ConnectionPoolTimeout:
       case PrismaKnownErrorCode.OperationTimeout:
-        return { status: HttpStatus.GATEWAY_TIMEOUT, message: '数据库响应超时，请稍后重试' };
+        return { status: HttpStatus.GATEWAY_TIMEOUT, message: databaseMessage('TIMEOUT', '数据库响应超时，请稍后重试') };
       case PrismaKnownErrorCode.DatabaseNotReachable:
       case PrismaKnownErrorCode.DatabaseConnectionTimeout:
       case PrismaKnownErrorCode.ServerClosedConnection:
-        return { status: HttpStatus.SERVICE_UNAVAILABLE, message: '数据库连接失败，请稍后重试' };
+        return { status: HttpStatus.SERVICE_UNAVAILABLE, message: databaseMessage('UNAVAILABLE', '数据库连接失败，请稍后重试') };
       case PrismaKnownErrorCode.TransactionWriteConflict:
-        return { status: HttpStatus.CONFLICT, message: '数据已被其他请求修改，请重试' };
+        return { status: HttpStatus.CONFLICT, message: databaseMessage('WRITE_CONFLICT', '数据已被其他请求修改，请重试') };
       case PrismaKnownErrorCode.TooManyConnections:
-        return { status: HttpStatus.SERVICE_UNAVAILABLE, message: '数据库繁忙，请稍后重试' };
+        return { status: HttpStatus.SERVICE_UNAVAILABLE, message: databaseMessage('BUSY', '数据库繁忙，请稍后重试') };
       default:
         return {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: isProduction ? '数据库操作失败，请稍后重试' : exception.message,
+          message: isProduction ? databaseMessage('OPERATION_FAILED', '数据库操作失败，请稍后重试') : exception.message,
         };
     }
   }
 
   if (exception instanceof Prisma.PrismaClientInitializationError) {
-    return { status: HttpStatus.SERVICE_UNAVAILABLE, message: '数据库连接失败，请稍后重试' };
+    return { status: HttpStatus.SERVICE_UNAVAILABLE, message: databaseMessage('UNAVAILABLE', '数据库连接失败，请稍后重试') };
   }
 
   if (exception instanceof Prisma.PrismaClientUnknownRequestError || exception instanceof Prisma.PrismaClientValidationError) {
     // 驱动层超时错误可能被 Prisma 包装为未知错误，因此需要从错误信息中识别驱动错误码。
     if (DRIVER_TIMEOUT_CODES.some((code) => exception.message.includes(String(code)))) {
-      return { status: HttpStatus.GATEWAY_TIMEOUT, message: '数据库响应超时，请稍后重试' };
+      return { status: HttpStatus.GATEWAY_TIMEOUT, message: databaseMessage('TIMEOUT', '数据库响应超时，请稍后重试') };
     }
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: isProduction ? '数据库操作失败，请稍后重试' : exception.message,
+      message: isProduction ? databaseMessage('OPERATION_FAILED', '数据库操作失败，请稍后重试') : exception.message,
     };
   }
 

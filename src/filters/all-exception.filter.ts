@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { HttpAdapterHost } from '@nestjs/core';
 import type { Request } from 'express';
 import { isProduction } from '../utils/env';
+import { translateMessage } from '../utils/i18n';
 import { resolveDatabaseError } from './database-error';
 import { payloadFromHttpException, sanitizePayloadForProduction } from './http-exception-payload';
 
@@ -53,9 +54,9 @@ export class CatchEverythingFilter implements ExceptionFilter {
       httpStatus = dbError.status;
       message = dbError.message;
     } else if (exception instanceof Error) {
-      message = isProduction ? '服务器错误，请稍后重试' : exception.message;
+      message = isProduction ? translateMessage('common.SERVER_ERROR', '服务器错误，请稍后重试') : exception.message;
     } else {
-      message = '服务器错误，请稍后重试';
+      message = translateMessage('common.SERVER_ERROR', '服务器错误，请稍后重试');
     }
 
     const path = httpAdapter.getRequestUrl(request) as string;

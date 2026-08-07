@@ -28,10 +28,12 @@ export class HttpCacheInterceptor implements NestInterceptor {
     const options = this.reflector.getAllAndOverride<HttpCacheOptions>(HTTP_CACHE_METADATA_KEY, [context.getHandler(), context.getClass()]);
     if (!options) return next.handle();
 
-    const request = context.switchToHttp().getRequest<{ method: string; originalUrl?: string; url: string }>();
+    const request = context.switchToHttp().getRequest<{ method: string; originalUrl?: string; url: string; i18nLang?: string }>();
     if (request.method !== 'GET') return next.handle();
 
-    const cacheKey = options.key ?? `${request.method}:${request.originalUrl ?? request.url}`;
+    // 同一 URL 的响应文案可能随语言变化，locale 必须参与 key，防止缓存跨语言串用。
+    const baseCacheKey = options.key ?? `${request.method}:${request.originalUrl ?? request.url}`;
+    const cacheKey = `${baseCacheKey}:lang=${request.i18nLang ?? 'default'}`;
     const now = Date.now();
     const entry = this.cache.get(cacheKey);
     if (entry && entry.expiresAt > now) return of(entry.value);
