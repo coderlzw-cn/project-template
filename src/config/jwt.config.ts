@@ -29,22 +29,16 @@ export const authJwtValidationSchema = Joi.object({
     'string.min': '{{#label}} 不能为空',
   });
 
-const readKey = (environmentName: string, pathEnvironmentName: string) => {
-  const inlineKey = getRequiredEnvStr(environmentName);
-
-  if (inlineKey) {
-    return inlineKey.replaceAll('\\n', '\n');
-  }
-
-  const keyPath = path.resolve(process.cwd(), getRequiredEnvStr(pathEnvironmentName));
+const readKey = (environmentName: string) => {
+  const keyPath = path.resolve(process.cwd(), getRequiredEnvStr(environmentName));
 
   return fs.readFileSync(keyPath, 'utf8');
 };
 
 export const authJwtConfig = registerAs('auth.jwt', () => ({
   enabled: getEnvBool('AUTH_ENABLED', true), // 认证默认开启，防止环境变量漏配造成安全问题
-  privateKey: readKey('JWT_PRIVATE_KEY_PATH', 'JWT_PRIVATE_KEY_PATH_PATH'), // 私钥
-  publicKey: readKey('JWT_PUBLIC_KEY_PATH', 'JWT_PUBLIC_KEY_PATH_PATH'), // 公钥
+  privateKey: readKey('JWT_PRIVATE_KEY_PATH'), // 私钥
+  publicKey: readKey('JWT_PUBLIC_KEY_PATH'), // 公钥
   accessTtlSeconds: getRequiredEnvNum('JWT_ACCESS_TTL_SECONDS'), // 访问令牌过期时间
   refreshTtlSeconds: getRequiredEnvNum('JWT_REFRESH_TTL_SECONDS'), // 刷新令牌过期时间
   issuer: getRequiredEnvStr('JWT_ISSUER'), // 发行人

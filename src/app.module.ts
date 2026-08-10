@@ -16,8 +16,8 @@ import { DEFAULT_LANGUAGE, LANGUAGE_FALLBACKS } from './constants/i18n.constants
 import { HealthModule } from './infrastructure/health/health.module';
 import { InfluxdbModule } from './infrastructure/influxdb';
 import { licenseValidationSchema } from './license/license.config';
-import { LicenseModule } from './license/license.module';
 import { AuthModule } from './module/auth/auth.module';
+import { PermissionModule } from './module/permission/permission.module';
 import { UserModule } from './module/user/user.module';
 import { environment, isDevelopment, isProduction } from './utils/env';
 const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.local', '.env'];
@@ -55,9 +55,10 @@ const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.l
     EventEmitterModule.forRoot(),
     HealthModule,
     UserModule,
-    LicenseModule,
+    // LicenseModule,
     PrismaModule,
     AuthModule,
+    PermissionModule,
     InfluxdbModule.forRoot({
       isGlobal: true,
       host: 'http://197.0.0.1',

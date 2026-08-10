@@ -1,0 +1,30 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsOptional, IsString, IsUUID, Matches, MaxLength, Min } from 'class-validator';
+
+export class CreateRoleDto {
+  @ApiProperty({ description: '业务角色标识', example: 'custom_ops', maxLength: 64 })
+  @MaxLength(64)
+  @Matches(/^[a-z][a-z0-9_]*$/, { message: 'key 只能包含小写字母、数字和下划线，且必须以字母开头' })
+  @IsString()
+  key: string;
+
+  @ApiProperty({ description: '角色显示名称', example: '运营人员' })
+  @IsString()
+  label: string;
+
+  @ApiPropertyOptional({ description: '角色说明', default: '', maxLength: 1024 })
+  @MaxLength(1024)
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiProperty({ description: '权限级别，数值越大权限越高', example: 50, minimum: 0 })
+  @Min(0)
+  @IsInt()
+  level: number;
+
+  @ApiPropertyOptional({ description: '父角色 UUID；不传表示顶级角色', format: 'uuid' })
+  @IsUUID('4')
+  @IsOptional()
+  parentId?: string;
+}

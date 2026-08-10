@@ -18,25 +18,27 @@ enum UserRole {
 /// 用户表
 model User {
   /// 用户ID，自增主键
-  id                  Int           @id @default(autoincrement())
+  id                  Int                  @id @default(autoincrement())
   /// 用户名，全局唯一，用于登录
-  username            String        @unique(map: "user_username_key")
+  username            String               @unique(map: "user_username_key")
   /// 密码的 bcrypt 哈希值（不存明文）
   password            String
   /// 邮箱，可选，全局唯一
-  email               String?       @unique(map: "user_email_key")
+  email               String?              @unique(map: "user_email_key")
   /// 用户角色，默认普通用户
-  role                UserRole      @default(USER)
+  role                UserRole             @default(USER)
   /// 连续登录失败次数，登录成功或触发锁定后清零
-  failedLoginAttempts Int           @default(0) @map("failed_login_attempts")
+  failedLoginAttempts Int                  @default(0) @map("failed_login_attempts")
   /// 锁定截止时间，晚于当前时间表示账户被锁定（连续登录失败触发），到期自动解锁
-  lockedUntil         DateTime?     @map("locked_until")
+  lockedUntil         DateTime?            @map("locked_until")
   /// 创建时间
-  createdTime         DateTime      @default(now()) @map("create_time")
+  createdTime         DateTime             @default(now()) @map("create_time")
   /// 更新时间
-  updatedTime         DateTime      @updatedAt @map("update_time")
+  updatedTime         DateTime             @updatedAt @map("update_time")
   /// 该用户的登录会话列表
   sessions            AuthSession[]
+  /// 用户获授的业务角色
+  roleAssignments     UserRoleAssignment[]
 
   @@map("user")
 }
@@ -68,4 +70,51 @@ model AuthSession {
 
   @@index([userId, revokedTime, expiresTime])
   @@map("auth_session")
+}
+
+/// 角色表，支持通过父角色构建分层角色体系
+model Role {
+  /// 角色ID，UUID 主键
+  id              String               @id @default(uuid()) @db.VarChar(36)
+  /// 业务标识，如 super_admin / custom_ops，全局唯一
+  key             String               @unique(map: "role_key_key") @db.VarChar(64)
+  /// 显示名称
+  label           String               @db.Text
+  /// 角色说明
+  description     String               @default("") @db.VarChar(1024)
+  /// 权限级别，数值越大权限越高
+  level           Int
+  /// 父角色ID，空值表示顶级角色
+  parentId        String?              @map("parent_id") @db.VarChar(36)
+  /// 创建时间
+  createdTime     DateTime             @default(now()) @map("create_time")
+  /// 更新时间
+  updatedTime     DateTime             @updatedAt @map("update_time")
+  /// 父角色，父角色删除后当前角色提升为顶级角色
+  parent          Role?                @relation("RoleHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  /// 直接子角色列表
+  children        Role[]               @relation("RoleHierarchy")
+  /// 获授该角色的用户关联
+  userAssignments UserRoleAssignment[]
+
+  @@index([parentId], map: "role_parent_id_idx")
+  @@map("role")
+}
+
+/// 用户与角色的多对多关联表
+model UserRoleAssignment {
+  /// 用户ID
+  userId      Int      @map("user_id")
+  /// 角色ID
+  roleId      String   @map("role_id") @db.VarChar(36)
+  /// 授权时间
+  createdTime DateTime @default(now()) @map("create_time")
+  /// 所属用户，删除用户时级联删除授权关系
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// 所属角色，删除角色时级联删除授权关系
+  role        Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId], map: "user_role_role_id_idx")
+  @@map("user_role")
 }
