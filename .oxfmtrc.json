@@ -1,6 +1,13 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "printWidth": 80,
   "arrowParens": "avoid",
   "endOfLine": "lf",
-  "ignorePatterns": ["stats.html", ".devServer"]
+  "ignorePatterns": ["stats.html", ".devServer"],
+  "sortTailwindcss": {
+    "stylesheet": "src/assets/styles/global.css",
+    "preserveDuplicates": true
+  }
 }

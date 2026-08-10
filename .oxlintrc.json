@@ -1,6 +1,12 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "oxc", "import", "unicorn"],
+  "jsPlugins": ["eslint-plugin-better-tailwindcss"],
+  "settings": {
+    "better-tailwindcss": {
+      "entryPoint": "src/assets/styles/global.css"
+    }
+  },
   // 按分类批量启用规则：correctness（确定的错误）报错，suspicious（可疑写法）、perf（性能隐患）告警
   "categories": {
     "correctness": "error",
@@ -13,7 +19,17 @@
     // React 17+ 使用自动 JSX 运行时（tsconfig 的 jsx: react-jsx），无需手动引入 React
     "react/react-in-jsx-scope": "off",
     // 样式、polyfill 等副作用导入（如 import "./global.css"）是正常写法
-    "import/no-unassigned-import": "off"
+    "import/no-unassigned-import": "off",
+    // better-tailwindcss 推荐规则：样式问题警告，正确性问题报错
+    "better-tailwindcss/enforce-canonical-classes": "warn", // 将任意值等写法统一为 Tailwind 推荐的标准类名
+    "better-tailwindcss/enforce-consistent-class-order": "off", // 类名排序交由 Oxfmt 处理，避免两种排序算法冲突
+    "better-tailwindcss/enforce-consistent-line-wrapping": "off", // JSX 和类名换行交由 Oxfmt 统一处理
+    "better-tailwindcss/no-deprecated-classes": "warn", // 禁止使用已废弃的 Tailwind 类名
+    "better-tailwindcss/no-duplicate-classes": "warn", // 禁止在同一类名字符串中重复声明类名
+    "better-tailwindcss/no-unnecessary-whitespace": "off", // 类名空白由 Oxfmt 统一规范化
+    "better-tailwindcss/no-concatenated-classes": "error", // 禁止通过字符串拼接动态组合 Tailwind 类名
+    "better-tailwindcss/no-conflicting-classes": "error", // 禁止同时使用会设置相同 CSS 属性的冲突类名
+    "better-tailwindcss/no-unknown-classes": "error" // 禁止使用 Tailwind 未注册或无法识别的类名
   },
   "ignorePatterns": ["dist", "stats.html"]
 }

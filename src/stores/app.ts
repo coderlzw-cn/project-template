@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-type Theme = "light" | "dark";
+type Theme = 'light' | 'dark';
 
 interface AppState {
   /** 主题模式 */
@@ -21,10 +21,10 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     set => ({
-      theme: "light",
+      theme: 'light',
       setTheme: theme => set({ theme }),
     }),
     // localStorage 的 key
-    { name: "app-store" },
+    { name: 'app-store' },
   ),
 );

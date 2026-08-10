@@ -3,7 +3,7 @@
  * 路由配置、<Link>、navigate() 都从这里取值，避免硬编码字符串
  */
 export const ROUTES = {
-  HOME: "/",
+  HOME: '/',
   /** 兜底路由，匹配所有未定义路径 */
-  NOT_FOUND: "*",
+  NOT_FOUND: '*',
 } as const;

@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type PropsWithChildren } from "react";
+import { Component, type ErrorInfo, type PropsWithChildren } from 'react';
 
 interface State {
   error: Error | null;
@@ -20,7 +20,7 @@ export default class ErrorBoundary extends Component<PropsWithChildren, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex h-screen flex-col items-center justify-center gap-2">
+        <div className='flex h-screen flex-col items-center justify-center gap-2'>
           <p>页面出错了，请刷新重试</p>
         </div>
       );

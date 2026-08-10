@@ -1,5 +1,23 @@
 {
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit"
+  },
   // 统一用 oxc 扩展（内部调用项目里的 oxfmt）作为默认格式化器，保存时自动格式化
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "i18n-ally.localesPaths": ["src/i18n/locales"],
+  // 按 react-i18next 的调用方式识别和提取翻译 key
+  "i18n-ally.enabledFrameworks": ["react-i18next"],
+  // 将 channelSimulator.start 解析为嵌套 JSON 属性
+  "i18n-ally.keystyle": "nested",
+  // 使用 JSON 文件名作为 i18next namespace
+  "i18n-ally.namespace": true,
+
+  // 将 zh-CN/common.json 解析为 zh-CN 语言下的 common namespace
+  "i18n-ally.pathMatcher": "{locale}/{namespace}.json",
+
+  // 提取文案时自动选择路径与当前源码最接近的语言文件
+  "i18n-ally.extract.targetPickingStrategy": "most-similar",
+  // "i18n-ally.defaultNamespace": "common",
+  "i18n-ally.sourceLanguage": "en-US"
 }

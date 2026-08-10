@@ -1,8 +1,8 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme inline {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -41,6 +41,60 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes theme-slide-in-from-right {
+  from {
+    opacity: 0.75;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes theme-slide-in-from-left {
+  from {
+    opacity: 0.75;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes theme-slide-out-to-left {
+  to {
+    opacity: 0.75;
+    transform: translateX(-24%);
+  }
+}
+
+@keyframes theme-slide-out-to-right {
+  to {
+    opacity: 0.75;
+    transform: translateX(24%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-theme-transition]::view-transition-old(root),
+  html[data-theme-transition]::view-transition-new(root) {
+    animation-duration: 460ms;
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    mix-blend-mode: normal;
+  }
+
+  html[data-theme-transition='to-dark']::view-transition-old(root) {
+    animation-name: theme-slide-out-to-left;
+  }
+
+  html[data-theme-transition='to-dark']::view-transition-new(root) {
+    animation-name: theme-slide-in-from-right;
+  }
+
+  html[data-theme-transition='to-light']::view-transition-old(root) {
+    animation-name: theme-slide-out-to-right;
+  }
+
+  html[data-theme-transition='to-light']::view-transition-new(root) {
+    animation-name: theme-slide-in-from-left;
   }
 }
 
