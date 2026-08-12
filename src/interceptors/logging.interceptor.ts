@@ -1,5 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common';
-import { Observable, tap } from 'rxjs';
+import { Request } from 'express';
+import { tap } from 'rxjs';
 
 /**
  * HTTP 日志拦截器。
@@ -15,21 +16,11 @@ import { Observable, tap } from 'rxjs';
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (context.getType() !== 'http') {
-      return next.handle();
-    }
+  intercept(context: ExecutionContext, next: CallHandler) {
+    if (context.getType() !== 'http') return next.handle();
 
     const http = context.switchToHttp();
-    const request = http.getRequest<{
-      method: string;
-      originalUrl?: string;
-      url: string;
-      ip?: string;
-      socket?: { remoteAddress?: string };
-      headers: Record<string, string | string[] | undefined>;
-      requestId?: string;
-    }>();
+    const request = http.getRequest<Request>();
     const response = http.getResponse<{ statusCode: number }>();
     const url = request.originalUrl ?? request.url;
 
@@ -47,20 +38,7 @@ export class LoggingInterceptor implements NestInterceptor {
     );
   }
 
-  private logRequest(
-    request: {
-      method: string;
-      originalUrl?: string;
-      url: string;
-      ip?: string;
-      socket?: { remoteAddress?: string };
-      headers: Record<string, string | string[] | undefined>;
-      requestId?: string;
-    },
-    statusCode: number,
-    durationMs: number,
-    failed = false,
-  ) {
+  private logRequest(request: Request, statusCode: number, durationMs: number, failed = false) {
     const forwardedFor = request.headers['x-forwarded-for']?.toString().split(',')[0];
     const ip = forwardedFor ?? request.ip ?? request.socket?.remoteAddress ?? '-';
     const userAgent = request.headers['user-agent']?.toString() ?? '-';

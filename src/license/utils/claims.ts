@@ -146,7 +146,7 @@ export function validateLicenseClaims(licenseClaims: LicenseClaims, validationOp
     throw new Error(`许可证受众标识不匹配：预期 ${licenseClaims.audience}，实际 ${validationOptions.expectedAudience}`);
   }
 
-  if (licenseClaims.machine_id != null) {
+  if (licenseClaims.machine_id !== null && licenseClaims.machine_id !== undefined) {
     if (!validationOptions.currentMachineId) throw new Error('设备机器码不存在');
     if (!safeEqual(validationOptions.currentMachineId, licenseClaims.machine_id)) throw new Error('设备机器码与许可证绑定信息不符');
   }

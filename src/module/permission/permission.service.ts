@@ -34,7 +34,8 @@ export class PermissionService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 10;
     const skip = query.offset ?? (page - 1) * pageSize;
-    const keyword = query.keyword?.trim();
+    const keyword = query.keyword;
+
     const where: Prisma.RoleWhereInput = {
       parentId: query.parentId,
       level: query.level,
@@ -46,9 +47,24 @@ export class PermissionService {
     };
 
     return forkJoin({
-      list: from(this.prismaService.role.findMany({ where, select: roleSelect, orderBy: [{ level: 'desc' }, { createdTime: 'asc' }], skip, take: pageSize })),
+      list: from(
+        this.prismaService.role.findMany({
+          where,
+          select: roleSelect,
+          orderBy: [{ level: 'desc' }, { createdTime: 'asc' }],
+          skip,
+          take: pageSize,
+        }),
+      ),
       total: from(this.prismaService.role.count({ where })),
-    }).pipe(map(({ list, total }) => PaginationVo.build(list, total, page, pageSize)));
+    }).pipe(
+      map(({ list, total }) => {
+        // 动态计算总页数（防止 pageSize 为 0 导致 Divide by Zero，兜底为 0 或 1）
+        const pages = pageSize > 0 ? Math.ceil(total / pageSize) : 0;
+
+        return PaginationVo.build(list, total, page, pageSize, pages);
+      }),
+    );
   }
 
   findRole(roleId: string) {
@@ -65,7 +81,7 @@ export class PermissionService {
       from(
         this.prismaService.$transaction(async (transaction) => {
           if (dto.parentId) await this.assertParentChain(transaction, undefined, dto.parentId);
-          return transaction.role.create({ data: dto, select: roleSelect });
+          return await transaction.role.create({ data: dto, select: roleSelect });
         }),
       ),
     ).pipe(this.mapRoleKeyConflict());
@@ -81,7 +97,7 @@ export class PermissionService {
           if (dto.parentId !== undefined && dto.parentId !== null) {
             await this.assertParentChain(transaction, roleId, dto.parentId);
           }
-          return transaction.role.update({ where: { id: roleId }, data: dto, select: roleSelect });
+          return await transaction.role.update({ where: { id: roleId }, data: dto, select: roleSelect });
         }),
       ),
     ).pipe(this.mapRoleKeyConflict());

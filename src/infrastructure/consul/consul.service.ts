@@ -132,7 +132,7 @@ export class ConsulService implements OnApplicationBootstrap, OnApplicationShutd
 
   /** 列出当前 Agent 管理的本地服务，与全局 Catalog 视图可能短暂不一致。 */
   async listAgentServices(options: ConsulAgentServicesOptions = {}): Promise<ConsulResponse<Record<string, ConsulAgentService>>> {
-    return this.request<Record<string, ConsulAgentService>>('/v1/agent/services', {
+    return await this.request<Record<string, ConsulAgentService>>('/v1/agent/services', {
       ...options,
       query: { filter: options.filter },
     });
@@ -185,7 +185,7 @@ export class ConsulService implements OnApplicationBootstrap, OnApplicationShutd
   /** 通过 Health API 查询服务实例；默认仅返回健康实例。 */
   async discoverService(serviceName: string, options: ConsulServiceDiscoveryOptions = {}): Promise<ConsulResponse<ConsulHealthServiceEntry[]>> {
     this.assertResourceName(serviceName, 'serviceName');
-    return this.request<ConsulHealthServiceEntry[]>(`/v1/health/service/${encodeURIComponent(serviceName)}`, {
+    return await this.request<ConsulHealthServiceEntry[]>(`/v1/health/service/${encodeURIComponent(serviceName)}`, {
       ...options,
       query: {
         passing: options.passing ?? true,
@@ -197,7 +197,7 @@ export class ConsulService implements OnApplicationBootstrap, OnApplicationShutd
 
   /** 获取 Catalog 中的服务及标签映射。 */
   async listCatalogServices(options: ConsulCatalogServicesOptions = {}): Promise<ConsulResponse<Record<string, string[]>>> {
-    return this.request<Record<string, string[]>>('/v1/catalog/services', {
+    return await this.request<Record<string, string[]>>('/v1/catalog/services', {
       ...options,
       query: { 'node-meta': options.nodeMeta, filter: options.filter },
     });
@@ -216,7 +216,7 @@ export class ConsulService implements OnApplicationBootstrap, OnApplicationShutd
   /** 获取并以 UTF-8 解码 KV 值；键不存在或值为空时返回 null。 */
   async getKvText(key: string, options: ConsulKvReadOptions = {}): Promise<string | null> {
     const entry = (await this.getKv(key, options)).data;
-    return entry?.Value == null ? null : Buffer.from(entry.Value, 'base64').toString('utf8');
+    return entry?.Value === null || entry?.Value === undefined ? null : Buffer.from(entry.Value, 'base64').toString('utf8');
   }
 
   /** 递归读取某个前缀下的 KV 条目。 */

@@ -39,7 +39,7 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: '用户名密码登录并签发访问令牌' })
   login(@Body() _credentials: LoginDto, @Req() request: Request) {
-    return this.authService.login(request.user!, getSessionMetadata(request));
+    return this.authService.login(request, getSessionMetadata(request));
   }
 
   @Public()

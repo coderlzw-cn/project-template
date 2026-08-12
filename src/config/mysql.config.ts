@@ -18,7 +18,7 @@ export const mysqlValidationSchema = Joi.object({
     }),
 });
 
-const parseDatabaseUrl = (databaseUrl: string): Record<string, any> => {
+const parseDatabaseUrl = (databaseUrl: string): Record<string, unknown> => {
   let url: URL;
 
   try {

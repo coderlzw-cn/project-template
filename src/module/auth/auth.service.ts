@@ -3,11 +3,22 @@ import type { User } from '@/generated/prisma/client';
 import { ResponseResult } from '@/interceptors/transform.interceptor';
 import { PrismaService } from '@/module/prisma/prisma.service';
 import { normalizeIp } from '@/utils/ip';
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { compare, hash } from 'bcrypt';
+import type { Request } from 'express';
 import { I18nService } from 'nestjs-i18n';
 import { createHash, randomUUID } from 'node:crypto';
 import { catchError, defer, forkJoin, from, map, Observable, of, switchMap, throwError } from 'rxjs';
@@ -99,8 +110,9 @@ export class AuthService {
     return from(this.prismaService.user.findFirst({ select: { id: true } })).pipe(map((user) => !!user));
   }
 
-  login(user: User, metadata: SessionMetadata) {
-    return this.createSessionAndIssueTokens(user, metadata);
+  login(request: Request, metadata: SessionMetadata) {
+    if (!request.user) throw new InternalServerErrorException('登录失败');
+    return this.createSessionAndIssueTokens(request.user, metadata);
   }
 
   initialize({ username, password, email }: RegisterDto, metadata: SessionMetadata) {
@@ -114,7 +126,7 @@ export class AuthService {
               if ((await transaction.user.findFirst({ select: { id: true } })) !== null) {
                 throw new ConflictException(alreadyInitializedMessage);
               }
-              return transaction.user.create({
+              return await transaction.user.create({
                 data: { username, password: passwordHash, email, role: 'ADMIN' },
                 select: { id: true, username: true, role: true },
               });

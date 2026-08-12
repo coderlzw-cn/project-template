@@ -153,7 +153,7 @@ export class InfluxdbService implements OnApplicationShutdown {
 
   /** 获取 InfluxDB 服务端版本，可用于诊断和健康检查。 */
   async getServerVersion(): Promise<string | undefined> {
-    return this.client.getServerVersion();
+    return await this.client.getServerVersion();
   }
 
   /** 仅检查 InfluxDB 是否可访问，不向数据库写入数据。 */

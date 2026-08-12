@@ -4,27 +4,27 @@ import { Reflector } from '@nestjs/core';
 import { Observable, throwError, timeout } from 'rxjs';
 import { MAX_TIMEOUT_MS, SKIP_TIMEOUT_KEY, TIMEOUT_METADATA_KEY } from '../decorators/timeout.decorator';
 
-const DEFAULT_TIMEOUT_MS = 10_000;
-
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
-  constructor(private readonly reflector: Reflector) {}
+  private globalTimeout: number = 5000000;
+  constructor(
+    private readonly reflector: Reflector,
+    globalTimeout?: number,
+  ) {
+    if (globalTimeout) this.globalTimeout = globalTimeout;
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (context.getType() !== 'http') {
-      return next.handle();
-    }
+    if (context.getType() !== 'http') return next.handle();
 
     const handler = context.getHandler();
     const controller = context.getClass();
     const skipped = this.reflector.getAllAndOverride<boolean>(SKIP_TIMEOUT_KEY, [handler, controller]);
     const isSse = this.reflector.get<boolean>(SSE_METADATA, handler);
-    if (skipped || isSse) {
-      return next.handle();
-    }
+    if (skipped || isSse) return next.handle();
 
     const configuredTimeout = this.reflector.getAllAndOverride<number>(TIMEOUT_METADATA_KEY, [handler, controller]);
-    const timeoutMs = Number.isInteger(configuredTimeout) && (configuredTimeout ?? 0) > 0 && (configuredTimeout ?? 0) <= MAX_TIMEOUT_MS ? configuredTimeout : DEFAULT_TIMEOUT_MS;
+    const timeoutMs = Number.isInteger(configuredTimeout) && (configuredTimeout ?? 0) > 0 && (configuredTimeout ?? 0) <= MAX_TIMEOUT_MS ? configuredTimeout : this.globalTimeout;
 
     return next.handle().pipe(
       timeout({

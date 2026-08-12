@@ -4,21 +4,21 @@ import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class PaginationDto {
   @ApiPropertyOptional({ description: '当前页码', example: 1, default: 1, minimum: 1 })
-  @Min(1, { message: i18nValidationMessage('validation.PAGE_MIN') })
-  @IsInt({ message: i18nValidationMessage('validation.INTEGER') })
+  @Min(1, { message: i18nValidationMessage('common.VALIDATION.PAGE.MIN') })
+  @IsInt({ message: i18nValidationMessage('common.VALIDATION.IS_INT') })
   @IsOptional()
   page: number = 1;
 
   @ApiPropertyOptional({ description: '每页条数', example: 10, default: 10, minimum: 1, maximum: 100 })
-  @Min(1, { message: i18nValidationMessage('validation.PAGE_SIZE_MIN') })
-  @Max(100, { message: i18nValidationMessage('validation.PAGE_SIZE_MAX') })
-  @IsInt({ message: i18nValidationMessage('validation.INTEGER') })
+  @Min(1, { message: i18nValidationMessage('common.VALIDATION.PAGE.SIZE_MIN') })
+  @Max(100, { message: i18nValidationMessage('common.VALIDATION.PAGE.SIZE_MAX') })
+  @IsInt({ message: i18nValidationMessage('common.VALIDATION.IS_INT') })
   @IsOptional()
   pageSize: number = 10;
 
   @ApiPropertyOptional({ description: '偏移量，不传时根据 page 和 pageSize 自动计算', example: 0, minimum: 0 })
-  @Min(0, { message: i18nValidationMessage('validation.OFFSET_MIN') })
-  @IsInt({ message: i18nValidationMessage('validation.INTEGER') })
+  @Min(0, { message: i18nValidationMessage('common.VALIDATION.PAGE.OFFSET_MIN') })
+  @IsInt({ message: i18nValidationMessage('common.VALIDATION.IS_INT') })
   @IsOptional()
   offset?: number;
 }
@@ -28,7 +28,7 @@ export interface PaginationVoValues<T> {
   total: number;
   page: number;
   pageSize: number;
-  pages?: number;
+  pages: number;
 }
 
 export class PaginationVo<T> {
@@ -38,15 +38,15 @@ export class PaginationVo<T> {
    * @example
    * return PaginationVo.build(list, total, page, pageSize);
    */
-  static build<T>(list: T[], total: number, page: number, pageSize: number): PaginationVo<T> {
-    return new PaginationVo({ list, total, page, pageSize });
+  static build<T>(list: T[], total: number, page: number, pageSize: number, pages: number): PaginationVo<T> {
+    return new PaginationVo({ list, total, page, pageSize, pages });
   }
 
   constructor(values: PaginationVoValues<T>) {
     const total = Number.isInteger(values.total) && values.total >= 0 ? values.total : 0;
     const page = Number.isInteger(values.page) && values.page > 0 ? values.page : 1;
     const pageSize = Number.isInteger(values.pageSize) && values.pageSize > 0 ? values.pageSize : values.list.length || 10;
-    const pages = Number.isInteger(values.pages) && (values.pages ?? -1) >= 0 ? values.pages! : Math.ceil(total / pageSize);
+    const pages = Number.isInteger(values.pages) && (values.pages ?? -1) >= 0 ? values.pages : Math.ceil(total / pageSize);
 
     this.list = values.list;
     this.total = total;

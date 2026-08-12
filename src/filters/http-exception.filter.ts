@@ -1,7 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { ExceptionVo } from './all-exception.filter';
-import { payloadFromHttpException, sanitizePayloadForProduction } from './http-exception-payload';
+import { ExceptionVo, localizeHttpExceptionPayload, payloadFromHttpException } from './http-exception-payload';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -10,7 +9,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
-    const { message, error } = sanitizePayloadForProduction(status, payloadFromHttpException(exception));
+    const { message, error } = localizeHttpExceptionPayload(host, status, payloadFromHttpException(exception));
 
     response.status(status).json(
       ExceptionVo.build({

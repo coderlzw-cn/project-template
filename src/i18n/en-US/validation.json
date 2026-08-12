@@ -1,7 +1,0 @@
-{
-  "PAGE_MIN": "Page must be at least {constraints.0}",
-  "PAGE_SIZE_MIN": "Page size must be at least {constraints.0}",
-  "PAGE_SIZE_MAX": "Page size must not exceed {constraints.0}",
-  "OFFSET_MIN": "Offset must not be less than {constraints.0}",
-  "INTEGER": "{property} must be an integer"
-}

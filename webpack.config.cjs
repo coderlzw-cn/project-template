@@ -1,5 +1,6 @@
 const nodeExternals = require('webpack-node-externals');
 const {RunScriptWebpackPlugin} = require('run-script-webpack-plugin');
+require('dotenv').config({ quiet: true });
 /**
  * Nest CLI 会把默认 Webpack 配置和 Webpack 实例传入此函数。
  * 在默认配置基础上追加 Node.js 服务端 HMR，避免覆盖 Nest 已配置的

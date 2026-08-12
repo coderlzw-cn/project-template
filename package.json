@@ -7,19 +7,27 @@
   "license": "UNLICENSED",
   "packageManager": "pnpm@11.11.0",
   "scripts": {
-    "dev": "NODE_ENV=development nest build --webpack --webpackPath webpack.config.cjs --watch --watchAssets",
-    "dev:debug": "NODE_ENV=development DEBUG_PORT=9229 nest build --webpack --webpackPath webpack.config.cjs --watch --watchAssets",
+    "dev": "nest build --webpack --webpackPath webpack.config.cjs --watch --watchAssets",
+    "dev:debug": "DEBUG_PORT=9229 nest build --webpack --webpackPath webpack.config.cjs --watch --watchAssets",
     "build": "NODE_ENV=production nest build --webpack --webpackPath webpack.config.cjs",
+    "typecheck": "tsc --noEmit --project tsconfig.build.json",
     "start": "nest start --webpackPath webpack.config.cjs",
     "start:debug": "nest start --debug --watch --webpackPath webpack.config.cjs",
-    "start:prod": "NODE_ENV=production node dist/main",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "start:prod": "NODE_ENV=production node dist/main.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "lint:fix": "pnpm lint --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
   },
   "dependencies": {
     "@influxdata/influxdb3-client": "^2.3.0",

@@ -1,11 +1,5 @@
 import JSON5 from 'json5';
 
-/**
- * JSON 文本采用的语法格式。
- *
- * - `json`：严格遵循标准 JSON 语法。
- * - `json5`：额外支持注释、尾逗号、单引号和未加引号的对象键。
- */
 export type JsonFormat = 'json' | 'json5';
 
 /**
@@ -293,12 +287,15 @@ export function formatJson(text: string, options: FormatJsonOptions = {}) {
 }
 
 function createReplacer(replacer: JsonReplacer | readonly (string | number)[] | undefined, sortKeys: boolean, omitNullish: boolean) {
+  // Array.isArray 的类型谓词会收窄为 any[]；此处恢复输入联合类型中已经声明的元素类型。
+  const keyList = Array.isArray(replacer) ? (replacer as readonly (string | number)[]) : undefined;
+
   // 无需组合额外行为时保留底层序列化器的原生 replacer 处理方式。
   if (!sortKeys && !omitNullish) {
-    return isKeyList(replacer) ? [...replacer] : replacer;
+    return keyList ? [...keyList] : replacer;
   }
 
-  const allowedKeys = isKeyList(replacer) ? new Set(replacer.map((key) => String(key))) : undefined;
+  const allowedKeys = keyList ? new Set(keyList.map((key) => String(key))) : undefined;
   const replacerFunction = typeof replacer === 'function' ? replacer : undefined;
   const sortedObjects = new WeakMap<object, Record<string, unknown>>();
   let isRootCall = true;
@@ -334,10 +331,6 @@ function createReplacer(replacer: JsonReplacer | readonly (string | number)[] | 
     sortedObjects.set(objectValue, sortedObject);
     return sortedObject;
   };
-}
-
-function isKeyList(value: JsonReplacer | readonly (string | number)[] | undefined) {
-  return Array.isArray(value);
 }
 
 function isJsonObject(value: unknown) {

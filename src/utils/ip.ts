@@ -7,24 +7,41 @@ export const IP_MAX_LENGTH = 45;
 const IPV4_MAPPED_PREFIX = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i;
 
 /**
- * 归一化 IP 地址，用于统一存储、比对和展示：
- * - 去除首尾空白并转小写
- * - 剥离 IPv4 映射前缀（`::ffff:1.2.3.4` -> `1.2.3.4`）
- * - 剥离 IPv6 zone id（`fe80::1%eth0` -> `fe80::1`）
- * - 截断到 {@link IP_MAX_LENGTH} 防止超长脏数据
- * @param ip 原始 IP，允许为空
- * @returns 归一化后的 IP；入参为空或非法时返回 undefined
+ * 规范化并校验 IP 地址。
+ *
+ * - 去除首尾空白字符并转为小写；
+ * - 移除 IPv6 的区域索引（Zone ID，如 `%eth0`）；
+ * - 提取 IPv4 映射的 IPv6 地址中的 IPv4 部分（如 `::ffff:192.0.2.1` -> `192.0.2.1`）；
+ * - 限制字符串最大长度以防止 DoS 攻击，并最终校验其合法性。
+ *
+ * @param ip - 待规范化的原始 IP 地址字符串，支持传入 `null` 或 `undefined`
+ * @returns 返回规范化后的有效 IPv4/IPv6 地址字符串；若输入为空或格式非法则返回 `undefined`
+ *
+ * @example
+ * // 返回 '192.168.1.1'
+ * normalizeIp(' ::ffff:192.168.1.1 ');
+ *
+ * @example
+ * // 返回 'fe80::1'
+ * normalizeIp('FE80::1%eth0');
+ *
+ * @example
+ * // 返回 undefined
+ * normalizeIp('invalid-ip-string');
  */
-export function normalizeIp(ip?: string | null): string | undefined {
+export function normalizeIp(ip?: string | null) {
   if (!ip) return undefined;
 
+  // 去除首尾空白并转小写
   let normalized = ip.trim().toLowerCase();
 
+  // 查找是否存在 % 符号（常见于 IPv6 链路本地地址，如 fe80::1%eth0）。若存在，则截断 % 及其后面的网卡接口信息，仅保留核心 IP 部分
   const zoneIndex = normalized.indexOf('%');
   if (zoneIndex !== -1) {
     normalized = normalized.slice(0, zoneIndex);
   }
 
+  // 使用正则表达式检查是否为 IPv4 映射的 IPv6 地址（例如 ::ffff:192.0.2.1）。如果是，则提取出内部真实的 IPv4 地址部分。
   const mapped = IPV4_MAPPED_PREFIX.exec(normalized);
   if (mapped) {
     normalized = mapped[1];
@@ -37,7 +54,7 @@ export function normalizeIp(ip?: string | null): string | undefined {
 /**
  * 判断是否为合法 IP（IPv4 或 IPv6）
  */
-export function isValidIp(ip?: string | null): boolean {
+export function isValidIp(ip?: string | null) {
   return !!ip && isIP(ip.trim()) !== 0;
 }
 
@@ -45,7 +62,7 @@ export function isValidIp(ip?: string | null): boolean {
  * 获取 IP 版本
  * @returns 4 | 6，非法 IP 返回 0
  */
-export function getIpVersion(ip?: string | null): 0 | 4 | 6 {
+export function getIpVersion(ip?: string | null) {
   if (!ip) return 0;
   return isIP(ip.trim()) as 0 | 4 | 6;
 }
@@ -53,41 +70,110 @@ export function getIpVersion(ip?: string | null): 0 | 4 | 6 {
 /**
  * 解析 `X-Forwarded-For` 请求头为 IP 数组（从左到右：客户端 -> 各层代理）。
  * 会自动归一化并过滤非法项。
- * @param headerValue 请求头原始值，支持 string / string[]
+ * @param ips 请求头原始值，支持 string / string[]
  */
-export function parseForwardedFor(headerValue?: string | string[] | null): string[] {
-  if (!headerValue) return [];
+export function parseForwardedFor(ips?: string | string[] | null) {
+  if (!ips) return [];
 
-  const raw = Array.isArray(headerValue) ? headerValue.join(',') : headerValue;
+  const raw = Array.isArray(ips) ? ips.join(',') : ips;
   return raw
     .split(',')
     .map((item) => normalizeIp(item))
-    .filter((item): item is string => !!item);
-}
-
-/** 提取客户端 IP 所需的最小请求结构，兼容 Express Request */
-interface RequestLike {
-  headers: Record<string, string | string[] | undefined>;
-  ip?: string;
-  socket?: { remoteAddress?: string | null };
+    .filter((item) => item !== undefined);
 }
 
 /**
- * 从请求中提取客户端真实 IP。
- * 优先级：`x-forwarded-for` 首个合法 IP > `x-real-ip` > `req.ip`（依赖 trust proxy）> socket remoteAddress。
- * 结果已归一化（剥离 `::ffff:` 前缀等）。
- * @param request Express Request 或包含 headers/ip/socket 的对象
- * @returns 客户端 IP，无法提取时返回 undefined
+ * 从 请求头 与 Socket 地址 中提取客户端真实 IP。
+ *
+ * 提取优先级：
+ * 1. `x-forwarded-for` 首个合法 IP
+ * 2. `x-real-ip`
+ * 3. 兜底的 TCP Socket 物理 IP（`remoteAddress`）
+ *
+ * @param headers - HTTP 请求头对象
+ * @param remoteAddress - 兜底的底层 TCP 连接 IP（如 `req.socket.remoteAddress` 或 `req.ip`）
+ * @returns 归一化后的客户端 IP；若无法提取则返回 `undefined`
+ *
+ * @example
+ * // 在 Express 中使用
+ * const ip = extractClientIp(req.headers, req.socket.remoteAddress);
+ *
+ * @example
+ * // 在 Fastify 中使用
+ * const ip = extractClientIp(req.headers, req.ip);
  */
-export function extractClientIp(request: RequestLike): string | undefined {
-  const forwarded = parseForwardedFor(request.headers['x-forwarded-for']);
+export function extractClientIp(headers: Record<string, string | string[] | undefined>, remoteAddress?: string | null): string | undefined {
+  // 1. 尝试解析 X-Forwarded-For
+  const forwarded = parseForwardedFor(headers['x-forwarded-for']);
   if (forwarded.length > 0) return forwarded[0];
 
-  const realIp = request.headers['x-real-ip'];
+  // 2. 尝试解析 X-Real-IP
+  const realIp = headers['x-real-ip'];
   const normalizedRealIp = normalizeIp(Array.isArray(realIp) ? realIp[0] : realIp);
   if (normalizedRealIp) return normalizedRealIp;
 
-  return normalizeIp(request.ip) ?? normalizeIp(request.socket?.remoteAddress);
+  // 3. 使用 TCP Socket 物理 IP 进行兜底
+  return normalizeIp(remoteAddress);
+}
+
+/**
+ * 判断是否为回环地址（127.0.0.0/8 或 ::1）
+ */
+export function isLoopbackIp(ip?: string | null): boolean {
+  const normalized = normalizeIp(ip);
+  if (!normalized) return false;
+  if (normalized === '::1') return true;
+  return isIPv4(normalized) && normalized.startsWith('127.');
+}
+
+/**
+ * 将 IPv6 展开为完整 8 组形式（不含前导零压缩）
+ * @example expandIpv6('2001:db8::1') // '2001:db8:0:0:0:0:0:1'
+ */
+export function expandIpv6(ip: string): string {
+  const [head, tail = ''] = ip.split('::');
+  const headGroups = head ? head.split(':') : [];
+  const tailGroups = tail ? tail.split(':') : [];
+  const missing = 8 - headGroups.length - tailGroups.length;
+  const groups = ip.includes('::') ? [...headGroups, ...Array<string>(missing).fill('0'), ...tailGroups] : headGroups;
+  return groups.map((group) => group || '0').join(':');
+}
+
+/**
+ * IP 脱敏（可用于日志、埋点等隐私合规场景）：
+ * - IPv4 抹除最后 1 段：`203.0.113.7` -> `203.0.113.0`
+ * - IPv6 仅保留前 4 组：`2001:db8:a:b:c:d:e:f` -> `2001:db8:a:b::`
+ * @returns 脱敏后的 IP；非法 IP 返回 undefined
+ */
+export function anonymizeIp(ip?: string | null): string | undefined {
+  const normalized = normalizeIp(ip);
+  if (!normalized) return undefined;
+
+  if (isIPv4(normalized)) {
+    return `${normalized.split('.').slice(0, 3).join('.')}.0`;
+  }
+
+  const expanded = expandIpv6(normalized);
+  return `${expanded.split(':').slice(0, 4).join(':')}::`;
+}
+
+/**
+ * 将 IPv4 转换为 32 位无符号整数（可用于范围比较、入库索引）
+ * @returns 非法 IPv4 返回 undefined
+ */
+export function ipv4ToLong(ip?: string | null): number | undefined {
+  const normalized = normalizeIp(ip);
+  if (!normalized || !isIPv4(normalized)) return undefined;
+  return normalized.split('.').reduce((accumulator, octet) => accumulator * 256 + Number(octet), 0);
+}
+
+/**
+ * 将 32 位无符号整数还原为 IPv4
+ * @returns 超出范围返回 undefined
+ */
+export function longToIpv4(value: number): string | undefined {
+  if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) return undefined;
+  return [24, 16, 8, 0].map((shift) => (value >>> shift) & 0xff).join('.');
 }
 
 /** 内网/保留地址段（RFC 1918、RFC 4193、链路本地等） */
@@ -104,16 +190,6 @@ const PRIVATE_RANGES: Array<[string, number, 'ipv4' | 'ipv6']> = [
 const privateBlockList = new BlockList();
 for (const [network, prefix, family] of PRIVATE_RANGES) {
   privateBlockList.addSubnet(network, prefix, family);
-}
-
-/**
- * 判断是否为回环地址（127.0.0.0/8 或 ::1）
- */
-export function isLoopbackIp(ip?: string | null): boolean {
-  const normalized = normalizeIp(ip);
-  if (!normalized) return false;
-  if (normalized === '::1') return true;
-  return isIPv4(normalized) && normalized.startsWith('127.');
 }
 
 /**
@@ -194,54 +270,4 @@ export function createIpMatcher(rules: string[]): (ip?: string | null) => boolea
     if (!normalized) return false;
     return blockList.check(normalized, isIPv6(normalized) ? 'ipv6' : 'ipv4');
   };
-}
-
-/**
- * IP 脱敏（可用于日志、埋点等隐私合规场景）：
- * - IPv4 抹除最后 1 段：`203.0.113.7` -> `203.0.113.0`
- * - IPv6 仅保留前 4 组：`2001:db8:a:b:c:d:e:f` -> `2001:db8:a:b::`
- * @returns 脱敏后的 IP；非法 IP 返回 undefined
- */
-export function anonymizeIp(ip?: string | null): string | undefined {
-  const normalized = normalizeIp(ip);
-  if (!normalized) return undefined;
-
-  if (isIPv4(normalized)) {
-    return `${normalized.split('.').slice(0, 3).join('.')}.0`;
-  }
-
-  const expanded = expandIpv6(normalized);
-  return `${expanded.split(':').slice(0, 4).join(':')}::`;
-}
-
-/**
- * 将 IPv4 转换为 32 位无符号整数（可用于范围比较、入库索引）
- * @returns 非法 IPv4 返回 undefined
- */
-export function ipv4ToLong(ip?: string | null): number | undefined {
-  const normalized = normalizeIp(ip);
-  if (!normalized || !isIPv4(normalized)) return undefined;
-  return normalized.split('.').reduce((accumulator, octet) => accumulator * 256 + Number(octet), 0);
-}
-
-/**
- * 将 32 位无符号整数还原为 IPv4
- * @returns 超出范围返回 undefined
- */
-export function longToIpv4(value: number): string | undefined {
-  if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) return undefined;
-  return [24, 16, 8, 0].map((shift) => (value >>> shift) & 0xff).join('.');
-}
-
-/**
- * 将 IPv6 展开为完整 8 组形式（不含前导零压缩）
- * @example expandIpv6('2001:db8::1') // '2001:db8:0:0:0:0:0:1'
- */
-export function expandIpv6(ip: string): string {
-  const [head, tail = ''] = ip.split('::');
-  const headGroups = head ? head.split(':') : [];
-  const tailGroups = tail ? tail.split(':') : [];
-  const missing = 8 - headGroups.length - tailGroups.length;
-  const groups = ip.includes('::') ? [...headGroups, ...Array(missing).fill('0'), ...tailGroups] : headGroups;
-  return groups.map((group) => group || '0').join(':');
 }

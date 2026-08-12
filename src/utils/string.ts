@@ -49,7 +49,7 @@ const HTML_ESCAPE_LOOKUP: Readonly<Record<string, string>> = {
 
 /** 判断值是否为空字符串或仅包含 Unicode 空白。 */
 export function isBlank(value: string | null | undefined): boolean {
-  return value == null || value.trim().length === 0;
+  return value === null || value === undefined || value.trim().length === 0;
 }
 
 /** 判断未知值是否为字符串，并提供 TypeScript 类型收窄。 */

@@ -1,10 +1,13 @@
 import { Prisma } from '@/generated/prisma/client';
 import { HttpStatus } from '@nestjs/common';
+import { I18nContext } from 'nestjs-i18n';
 import { isProduction } from '../utils/env';
-import { translateMessage } from '../utils/i18n';
 
 /** 数据库诊断信息留在日志中；该函数只生成适合返回给客户端的本地化文案。 */
-const databaseMessage = (key: string, fallback: string) => translateMessage(`common.DATABASE_ERROR.${key}`, fallback);
+const databaseMessage = (key: string, fallback: string) => {
+  const i18n = I18nContext.current();
+  return i18n?.t(`common.DATABASE_ERROR.${key}`) ?? fallback;
+};
 
 /** 当前应用需要识别的 Prisma 已知请求错误码。 */
 export enum PrismaKnownErrorCode {

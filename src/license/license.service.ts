@@ -101,7 +101,7 @@ export class LicenseService implements OnModuleDestroy {
       const decodedClaims = decodeUnpaddedBase64UrlText(licenseEnvelope.payload, { allowEmpty: false, maxDecodedBytes: this.licenseConfiguration.maxLicenseFileSize });
       licenseClaims = parseJsonObject<LicenseClaims>(decodedClaims.toString(), { format: 'json5' });
       console.group('本地证书');
-      Object.entries(licenseClaims).forEach(([k, v]) => console.log(`${k}: ${v}`));
+      Object.entries(licenseClaims).forEach(([k, v]) => console.info(`${k}: ${v}`));
       console.groupEnd();
     } catch (error) {
       this.logger.error(`读取 License 内容失败: ${error instanceof Error ? error.message : String(error)}`);
