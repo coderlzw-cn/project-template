@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { catchError, defer, map, of } from 'rxjs';
 import { decodeUnpaddedBase64UrlText, encodeBase64Url, encodeBase64UrlText } from '../utils/base64';
-import { parseJsonObject, stringifyJson } from '../utils/json';
+import { parseJson, stringifyJson } from '../utils/json';
 import { type IssueLicenseDto } from './dto/issue-license.dto';
 import { licenseConfig } from './license.config';
 import type { LicenseClaims } from './license.interfaces';
@@ -99,7 +99,12 @@ export class LicenseService implements OnModuleDestroy {
       licenseContent = readFileSync(this.licenseConfiguration.licenseFilePath, 'utf8');
       const licenseEnvelope = parseLicenseEnvelope(licenseContent);
       const decodedClaims = decodeUnpaddedBase64UrlText(licenseEnvelope.payload, { allowEmpty: false, maxDecodedBytes: this.licenseConfiguration.maxLicenseFileSize });
-      licenseClaims = parseJsonObject<LicenseClaims>(decodedClaims.toString(), { format: 'json5' });
+      const parseResult = parseJson<LicenseClaims>(decodedClaims.toString(), { format: 'json5' });
+      if (!parseResult.success) throw parseResult.error;
+      if (typeof parseResult.data !== 'object' || parseResult.data === null || Array.isArray(parseResult.data)) {
+        throw new TypeError('License Claims 必须是 JSON 对象');
+      }
+      licenseClaims = parseResult.data;
       console.group('本地证书');
       Object.entries(licenseClaims).forEach(([k, v]) => console.info(`${k}: ${v}`));
       console.groupEnd();

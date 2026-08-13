@@ -17,6 +17,7 @@ import { LocaleResponseMiddleware } from './middleware/locale-response.middlewar
 import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
 import { RequestContextMiddleware } from './middleware/request-context.middleware';
 
+import '@/utils/json';
 import { ExcludeSensitiveInterceptor } from './interceptors/exclude-sensitive.interceptor';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { SerializeInterceptor } from './interceptors/serialize.interceptor';
@@ -25,13 +26,6 @@ import { IpAccessControlMiddleware } from './middleware/ip-access-control.middle
 import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 import { getEnvStr, isDevelopment, isProduction } from './utils/env';
 import { getErrorMessage } from './utils/error';
-declare const module: {
-  hot?: {
-    accept(): void;
-    dispose(callback: () => Promise<void>): void;
-  };
-};
-
 const swaggerBootstrap = (app: INestApplication, dev: boolean = false) => {
   if (!dev) return;
   const swaggerOptions = new DocumentBuilder()

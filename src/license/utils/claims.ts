@@ -1,6 +1,6 @@
 import { decodeUnpaddedBase64Url, decodeUnpaddedBase64UrlText } from '@/utils/base64';
 import { formatDateTime } from '@/utils/date';
-import { parseJsonObject } from '@/utils/json';
+import { parseJson } from '@/utils/json';
 import { safeEqual } from '@/utils/string';
 import crypto from 'node:crypto';
 import { LICENSE_MAX_SIZE } from '../license.config';
@@ -9,12 +9,9 @@ import { LicenseClaims, LicenseClaimsValidationOptions, LicenseEnvelope } from '
 /** 严格解析 JSON Envelope，拒绝未知字段和尾随数据。 */
 export function parseLicenseEnvelope(serializedEnvelope: Buffer | string): LicenseEnvelope {
   const envelopeText = typeof serializedEnvelope === 'string' ? serializedEnvelope : serializedEnvelope.toString('utf8');
-  let parsedEnvelope: unknown;
-  try {
-    parsedEnvelope = parseJsonObject(envelopeText, { format: 'json5' });
-  } catch (error) {
-    throw new Error('invalid token envelope', { cause: error });
-  }
+  const parseResult = parseJson(envelopeText, { format: 'json5' });
+  if (!parseResult.success) throw new Error('invalid token envelope', { cause: parseResult.error });
+  const parsedEnvelope = parseResult.data;
 
   if (typeof parsedEnvelope !== 'object' || parsedEnvelope === null || Array.isArray(parsedEnvelope)) {
     throw new Error('invalid token envelope: must be an object');
@@ -76,11 +73,9 @@ export function verifyLicensePayload(
   } catch {
     throw new Error('载荷Base64解码失败');
   }
-  try {
-    return parseJsonObject<LicenseClaims>(decodedClaims);
-  } catch {
-    return null;
-  }
+  const parseResult = parseJson<LicenseClaims>(decodedClaims);
+  if (!parseResult.success || typeof parseResult.data !== 'object' || parseResult.data === null || Array.isArray(parseResult.data)) return null;
+  return parseResult.data;
 }
 
 export function verifyLicense(

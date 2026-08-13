@@ -5,8 +5,56 @@
       "env": ["NODE_ENV"],
       "outputs": ["dist/**"]
     },
+    "typecheck": {},
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:debug": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:prod": {
+      "cache": false,
+      "persistent": true
+    },
+    "format": {
+      "cache": false
+    },
+    "format:check": {},
     "lint": {},
+    "lint:fix": {
+      "cache": false
+    },
     "test": {},
+    "test:watch": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true
+    },
+    "test:cov": {
+      "outputs": ["coverage/**"]
+    },
+    "test:debug": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true
+    },
+    "db:generate": {
+      "outputs": ["src/generated/prisma/**"]
+    },
+    "db:migrate": {
+      "cache": false,
+      "interactive": true
+    },
+    "db:migrate:deploy": {
+      "cache": false
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
+    },
+    "check": {},
     "dev": {
       "cache": false,
       "persistent": true
