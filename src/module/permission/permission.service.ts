@@ -10,19 +10,6 @@ import type { QueryRoleDto } from './dto/query-role.dto';
 import type { ReplaceUserRolesDto } from './dto/replace-user-roles.dto';
 import type { UpdateRoleDto } from './dto/update-role.dto';
 
-const roleSelect = {
-  id: true,
-  key: true,
-  label: true,
-  description: true,
-  level: true,
-  parentId: true,
-  createdTime: true,
-  updatedTime: true,
-  parent: { select: { id: true, key: true, label: true } },
-  _count: { select: { children: true, userAssignments: true } },
-} satisfies Prisma.RoleSelect;
-
 @Injectable()
 export class PermissionService {
   constructor(
@@ -31,26 +18,21 @@ export class PermissionService {
   ) {}
 
   findRoles(query: QueryRoleDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 10;
+    const page = query.page;
+    const pageSize = query.pageSize;
     const skip = query.offset ?? (page - 1) * pageSize;
     const keyword = query.keyword;
 
     const where: Prisma.RoleWhereInput = {
       parentId: query.parentId,
       level: query.level,
-      ...(keyword
-        ? {
-            OR: [{ key: { contains: keyword } }, { label: { contains: keyword } }, { description: { contains: keyword } }],
-          }
-        : {}),
+      OR: [{ key: { contains: keyword } }, { label: { contains: keyword } }, { description: { contains: keyword } }],
     };
 
     return forkJoin({
       list: from(
         this.prismaService.role.findMany({
           where,
-          select: roleSelect,
           orderBy: [{ level: 'desc' }, { createdTime: 'asc' }],
           skip,
           take: pageSize,
@@ -59,16 +41,14 @@ export class PermissionService {
       total: from(this.prismaService.role.count({ where })),
     }).pipe(
       map(({ list, total }) => {
-        // 动态计算总页数（防止 pageSize 为 0 导致 Divide by Zero，兜底为 0 或 1）
         const pages = pageSize > 0 ? Math.ceil(total / pageSize) : 0;
-
         return PaginationVo.build(list, total, page, pageSize, pages);
       }),
     );
   }
 
   findRole(roleId: string) {
-    return from(this.prismaService.role.findUnique({ where: { id: roleId }, select: roleSelect })).pipe(
+    return from(this.prismaService.role.findUnique({ where: { id: roleId } })).pipe(
       map((role) => {
         if (!role) throw new NotFoundException(this.i18nService.t('permission.ROLE_NOT_FOUND'));
         return role;
@@ -81,10 +61,29 @@ export class PermissionService {
       from(
         this.prismaService.$transaction(async (transaction) => {
           if (dto.parentId) await this.assertParentChain(transaction, undefined, dto.parentId);
-          return await transaction.role.create({ data: dto, select: roleSelect });
+          return await transaction.role.create({
+            data: dto,
+            select: {
+              id: true,
+              key: true,
+              label: true,
+              description: true,
+              level: true,
+              parentId: true,
+              createdTime: true,
+              updatedTime: true,
+              parent: { select: { id: true, key: true, label: true } },
+            },
+          });
         }),
       ),
-    ).pipe(this.mapRoleKeyConflict());
+    ).pipe(
+      catchError((error: unknown) =>
+        isDatabaseErrorCode(error, PrismaKnownErrorCode.UniqueConstraintViolation)
+          ? throwError(() => new ConflictException(this.i18nService.t('permission.ROLE_KEY_EXISTS')))
+          : throwError(() => error),
+      ),
+    );
   }
 
   updateRole(roleId: string, dto: UpdateRoleDto) {
@@ -97,10 +96,30 @@ export class PermissionService {
           if (dto.parentId !== undefined && dto.parentId !== null) {
             await this.assertParentChain(transaction, roleId, dto.parentId);
           }
-          return await transaction.role.update({ where: { id: roleId }, data: dto, select: roleSelect });
+          return await transaction.role.update({
+            where: { id: roleId },
+            data: dto,
+            select: {
+              id: true,
+              key: true,
+              label: true,
+              description: true,
+              level: true,
+              parentId: true,
+              createdTime: true,
+              updatedTime: true,
+              parent: { select: { id: true, key: true, label: true } },
+            },
+          });
         }),
       ),
-    ).pipe(this.mapRoleKeyConflict());
+    ).pipe(
+      catchError((error: unknown) =>
+        isDatabaseErrorCode(error, PrismaKnownErrorCode.UniqueConstraintViolation)
+          ? throwError(() => new ConflictException(this.i18nService.t('permission.ROLE_KEY_EXISTS')))
+          : throwError(() => error),
+      ),
+    );
   }
 
   deleteRole(roleId: string) {
@@ -130,13 +149,36 @@ export class PermissionService {
           id: true,
           username: true,
           role: true,
-          roleAssignments: { select: { createdTime: true, role: { select: roleSelect } }, orderBy: { role: { level: 'desc' } } },
+          roleAssignments: {
+            select: {
+              createdTime: true,
+              role: {
+                select: {
+                  id: true,
+                  key: true,
+                  label: true,
+                  description: true,
+                  level: true,
+                  parentId: true,
+                  createdTime: true,
+                  updatedTime: true,
+                  parent: { select: { id: true, key: true, label: true } },
+                },
+              },
+            },
+            orderBy: { role: { level: 'desc' } },
+          },
         },
       }),
     ).pipe(
       map((user) => {
         if (!user) throw new NotFoundException(this.i18nService.t('permission.USER_NOT_FOUND'));
-        return { ...user, roles: user.roleAssignments.map(({ role, createdTime }) => ({ ...role, assignedTime: createdTime })), roleAssignments: undefined };
+        const { roleAssignments, ...userInfo } = user;
+
+        return {
+          ...userInfo,
+          roles: roleAssignments.map(({ role }) => role),
+        };
       }),
     );
   }
@@ -146,6 +188,7 @@ export class PermissionService {
       from(
         this.prismaService.$transaction(async (transaction) => {
           await this.assertUserExists(transaction, userId);
+
           const existingRoleCount = await transaction.role.count({ where: { id: { in: roleIds } } });
           if (existingRoleCount !== roleIds.length) throw new NotFoundException(this.i18nService.t('permission.ROLE_NOT_FOUND'));
 
@@ -220,16 +263,5 @@ export class PermissionService {
     if (!(await transaction.user.findUnique({ where: { id: userId }, select: { id: true } }))) {
       throw new NotFoundException(this.i18nService.t('permission.USER_NOT_FOUND'));
     }
-  }
-
-  private mapRoleKeyConflict<T>() {
-    return (source: import('rxjs').Observable<T>) =>
-      source.pipe(
-        catchError((error: unknown) =>
-          isDatabaseErrorCode(error, PrismaKnownErrorCode.UniqueConstraintViolation)
-            ? throwError(() => new ConflictException(this.i18nService.t('permission.ROLE_KEY_EXISTS')))
-            : throwError(() => error),
-        ),
-      );
   }
 }

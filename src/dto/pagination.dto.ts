@@ -4,21 +4,21 @@ import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class PaginationDto {
   @ApiPropertyOptional({ description: '当前页码', example: 1, default: 1, minimum: 1 })
-  @Min(1, { message: i18nValidationMessage('common.VALIDATION.PAGE.MIN') })
-  @IsInt({ message: i18nValidationMessage('common.VALIDATION.IS_INT') })
+  @Min(1, { message: i18nValidationMessage('validation.PAGE.MIN') })
+  @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
   @IsOptional()
   page: number = 1;
 
   @ApiPropertyOptional({ description: '每页条数', example: 10, default: 10, minimum: 1, maximum: 100 })
-  @Min(1, { message: i18nValidationMessage('common.VALIDATION.PAGE.SIZE_MIN') })
-  @Max(100, { message: i18nValidationMessage('common.VALIDATION.PAGE.SIZE_MAX') })
-  @IsInt({ message: i18nValidationMessage('common.VALIDATION.IS_INT') })
+  @Min(1, { message: i18nValidationMessage('validation.PAGE.SIZE_MIN') })
+  @Max(100, { message: i18nValidationMessage('validation.PAGE.SIZE_MAX') })
+  @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
   @IsOptional()
   pageSize: number = 10;
 
   @ApiPropertyOptional({ description: '偏移量，不传时根据 page 和 pageSize 自动计算', example: 0, minimum: 0 })
-  @Min(0, { message: i18nValidationMessage('common.VALIDATION.PAGE.OFFSET_MIN') })
-  @IsInt({ message: i18nValidationMessage('common.VALIDATION.IS_INT') })
+  @Min(0, { message: i18nValidationMessage('validation.PAGE.OFFSET_MIN') })
+  @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
   @IsOptional()
   offset?: number;
 }

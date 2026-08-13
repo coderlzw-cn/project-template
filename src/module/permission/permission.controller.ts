@@ -1,4 +1,4 @@
-import { Roles } from '@/decorators/roles.decorator';
+import { Public } from '@/decorators/public.decorator';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -8,8 +8,9 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { PermissionService } from './permission.service';
 
 @ApiBearerAuth()
+@Public()
 @ApiTags('权限管理')
-@Roles('ADMIN')
+// @Roles('ADMIN')
 @Controller('permission')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
