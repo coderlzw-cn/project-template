@@ -69,7 +69,7 @@ const parseDatabaseUrl = (databaseUrl: string, loggerOptions: DatabaseLoggerOpti
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
     database,
-    // allowPublicKeyRetrieval: true,
+    allowPublicKeyRetrieval: true,
     // connectionLimit: 10,
     // connectTimeout: 10000, // 建连超时（TCP+握手），默认只有 1000ms，高延迟下最容易先炸的就是它
     // acquireTimeout: 15000, // 从连接池拿到连接的超时，默认 10000ms，应 > connectTimeout

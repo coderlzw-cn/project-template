@@ -1,7 +1,8 @@
 import { SkipLicenseCheck } from '@/license/skip-license.decorator';
+import { PrismaService } from '@/module/prisma/prisma.service';
 import { Controller, Get, VERSION_NEUTRAL, Version } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { DiskHealthIndicator, HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
+import { DiskHealthIndicator, HealthCheck, HealthCheckService, MemoryHealthIndicator, PrismaHealthIndicator } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../decorators/public.decorator';
 import { SkipTransform } from '../../decorators/skip-transform.decorator';
@@ -9,7 +10,7 @@ import { ApplicationHealthIndicator } from './application.health-indicator';
 import { ConfigHealthIndicator } from './config.health-indicator';
 import { EventLoopHealthIndicator } from './event-loop.health-indicator';
 
-@ApiTags('Health')
+@ApiTags('健康检查')
 @Public()
 @SkipLicenseCheck()
 @SkipThrottle()
@@ -23,6 +24,8 @@ export class HealthController {
     private readonly disk: DiskHealthIndicator,
     private readonly eventLoop: EventLoopHealthIndicator,
     private readonly config: ConfigHealthIndicator,
+    private readonly prismaHealth: PrismaHealthIndicator,
+    private readonly prisma: PrismaService,
   ) {}
 
   /** 仅判断应用进程是否仍可响应，不依赖外部资源。 */
@@ -32,6 +35,21 @@ export class HealthController {
   @ApiOperation({ summary: '存活探针' })
   liveness() {
     return this.health.check([() => this.application.isHealthy('application')]);
+  }
+
+  /** 检查实例是否具备接收业务流量的条件。 */
+  @Get('ready')
+  @Version(VERSION_NEUTRAL)
+  @HealthCheck()
+  @ApiOperation({ summary: '就绪探针' })
+  readiness() {
+    return this.health.check([
+      () => this.config.isHealthy('config'),
+      () =>
+        this.prismaHealth.pingCheck('database', this.prisma, {
+          timeout: 1_500,
+        }),
+    ]);
   }
 
   /** 检查进程 Heap 与 RSS 内存是否超过阈值。 */

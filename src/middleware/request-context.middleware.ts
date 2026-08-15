@@ -16,12 +16,11 @@ export const API_VERSION_HEADER = 'x-api-version';
  */
 export function RequestContextMiddleware(req: Request, res: Response, next: NextFunction) {
   const incomingRequestId = req.headers[REQUEST_ID_HEADER];
-  const requestId = typeof incomingRequestId === 'string' && incomingRequestId.trim().length > 0 ? incomingRequestId : randomUUID();
 
-  const ip = req.ip || req.socket.remoteAddress;
+  const requestId = typeof incomingRequestId === 'string' && /^[a-zA-Z0-9._:-]{1,128}$/.test(incomingRequestId) ? incomingRequestId : randomUUID();
 
   req.requestId = requestId;
-  req.clientIp = ip;
+  req.clientIp = req.ip || req.socket.remoteAddress;
 
   res.setHeader(REQUEST_ID_HEADER, requestId);
   next();

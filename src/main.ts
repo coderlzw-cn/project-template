@@ -19,7 +19,6 @@ import { RequestContextMiddleware } from './middleware/request-context.middlewar
 
 import '@/utils/json';
 import { ExcludeSensitiveInterceptor } from './interceptors/exclude-sensitive.interceptor';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { SerializeInterceptor } from './interceptors/serialize.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { IpAccessControlMiddleware } from './middleware/ip-access-control.middleware';
@@ -150,7 +149,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ExcludeSensitiveInterceptor(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
   app.useGlobalInterceptors(new SerializeInterceptor(reflector));
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // app.useGlobalInterceptors(new LoggingInterceptor());
 
   // 开放静态资源
   app.useStaticAssets(join(process.cwd(), 'resources/images'), { prefix: '/images/' });

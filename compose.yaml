@@ -12,15 +12,9 @@ services:
       PORT: 3000
       PREFIX_API: api
     ports:
-      - "${PORT:-3000}:3000"
+      - '${PORT:-3000}:3000'
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "require('node:http').get('http://127.0.0.1:3000/health/live',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
-        ]
+      test: ['CMD', 'node', '-e', "require('node:http').get('http://127.0.0.1:3000/health/live',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3

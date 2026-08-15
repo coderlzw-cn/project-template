@@ -4,11 +4,11 @@
 
 ## 功能概览
 
-| 类型 | 用途 | 关闭方式 |
-| --- | --- | --- |
-| `UdpService` | 在 NestJS 中创建并统一管理 UDP 端点 | 应用关闭时自动释放所有托管 Socket |
-| `UdpServer` | 监听端口、接收数据报、回复客户端 | 调用 `close()` |
-| `UdpClient` | 向默认远端或单次指定的目标发送数据报 | 调用 `close()` |
+| 类型         | 用途                                 | 关闭方式                          |
+| ------------ | ------------------------------------ | --------------------------------- |
+| `UdpService` | 在 NestJS 中创建并统一管理 UDP 端点  | 应用关闭时自动释放所有托管 Socket |
+| `UdpServer`  | 监听端口、接收数据报、回复客户端     | 调用 `close()`                    |
+| `UdpClient`  | 向默认远端或单次指定的目标发送数据报 | 调用 `close()`                    |
 
 默认使用 `udp4`，可通过 `type: 'udp6'` 改为 IPv6。
 
@@ -127,35 +127,35 @@ try {
 
 ### `UdpServerOptions`
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `bind` | `number \| BindOptions` | 是 | 监听端口或完整绑定参数 |
-| `type` | `'udp4' \| 'udp6'` | 否 | 地址族，默认 `udp4` |
-| `socketOptions` | `Omit<SocketOptions, 'type'>` | 否 | 透传给 `node:dgram.createSocket()` |
-| `onMessage` | `(message, remote) => void \| Promise<void>` | 否 | 数据报处理器 |
-| `onHandlerError` | `(error, remote) => void` | 否 | `onMessage` 返回的 Promise 拒绝时调用 |
+| 字段             | 类型                                         | 必填 | 说明                                  |
+| ---------------- | -------------------------------------------- | ---- | ------------------------------------- |
+| `bind`           | `number \| BindOptions`                      | 是   | 监听端口或完整绑定参数                |
+| `type`           | `'udp4' \| 'udp6'`                           | 否   | 地址族，默认 `udp4`                   |
+| `socketOptions`  | `Omit<SocketOptions, 'type'>`                | 否   | 透传给 `node:dgram.createSocket()`    |
+| `onMessage`      | `(message, remote) => void \| Promise<void>` | 否   | 数据报处理器                          |
+| `onHandlerError` | `(error, remote) => void`                    | 否   | `onMessage` 返回的 Promise 拒绝时调用 |
 
 ### `UdpClientOptions`
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `bind` | `number \| BindOptions` | 否 | 可选的本地绑定配置 |
-| `remote` | `{ address: string; port: number }` | 否 | 默认远端；配置后为已连接客户端 |
-| `type` | `'udp4' \| 'udp6'` | 否 | 地址族，默认 `udp4` |
-| `socketOptions` | `Omit<SocketOptions, 'type'>` | 否 | 透传给 `node:dgram.createSocket()` |
-| `onMessage` | `(message, remote) => void \| Promise<void>` | 否 | 处理响应或远端主动推送 |
-| `onHandlerError` | `(error, remote) => void` | 否 | 消息处理失败时调用 |
+| 字段             | 类型                                         | 必填 | 说明                               |
+| ---------------- | -------------------------------------------- | ---- | ---------------------------------- |
+| `bind`           | `number \| BindOptions`                      | 否   | 可选的本地绑定配置                 |
+| `remote`         | `{ address: string; port: number }`          | 否   | 默认远端；配置后为已连接客户端     |
+| `type`           | `'udp4' \| 'udp6'`                           | 否   | 地址族，默认 `udp4`                |
+| `socketOptions`  | `Omit<SocketOptions, 'type'>`                | 否   | 透传给 `node:dgram.createSocket()` |
+| `onMessage`      | `(message, remote) => void \| Promise<void>` | 否   | 处理响应或远端主动推送             |
+| `onHandlerError` | `(error, remote) => void`                    | 否   | 消息处理失败时调用                 |
 
 ### 公共方法
 
-| 对象 | 方法 | 说明 |
-| --- | --- | --- |
-| `UdpService` | `createServer(options)` | 创建并托管服务端 |
-| `UdpService` | `createClient(options?)` | 创建并托管客户端 |
-| `UdpServer` | `send(message, target)` | 向指定目标发送数据报，返回发送字节数 |
-| `UdpClient` | `send(message, target?)` | 发送数据报，返回发送字节数 |
-| `UdpServer` / `UdpClient` | `address()` | 返回 Socket 的本地地址 |
-| `UdpServer` / `UdpClient` | `close()` | 关闭 Socket；可安全重复调用 |
+| 对象                      | 方法                     | 说明                                 |
+| ------------------------- | ------------------------ | ------------------------------------ |
+| `UdpService`              | `createServer(options)`  | 创建并托管服务端                     |
+| `UdpService`              | `createClient(options?)` | 创建并托管客户端                     |
+| `UdpServer`               | `send(message, target)`  | 向指定目标发送数据报，返回发送字节数 |
+| `UdpClient`               | `send(message, target?)` | 发送数据报，返回发送字节数           |
+| `UdpServer` / `UdpClient` | `address()`              | 返回 Socket 的本地地址               |
+| `UdpServer` / `UdpClient` | `close()`                | 关闭 Socket；可安全重复调用          |
 
 `UdpMessage` 支持 `string` 、`Uint8Array` 和 `readonly Uint8Array[]`。接收到的消息始终是 `Buffer`。
 

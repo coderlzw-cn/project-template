@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
   {
-    ignores: ['eslint.config.mjs', 'webpack.config.cjs', 'ecosystem.config.cjs', 'dist/**', 'coverage/**'],
+    ignores: ['eslint.config.mjs', 'commitlint.config.cjs', 'webpack.config.cjs', 'ecosystem.config.cjs', 'dist/**', 'coverage/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -48,7 +48,7 @@ export default defineConfig(
         },
       ],
 
-      'no-console': ['warn', { allow: ['warn', 'error', 'info', 'group','groupEnd'] }], // 限制 console.log 滥用，仅保留 warn/error 允许打日志
+      'no-console': ['warn', { allow: ['warn', 'error', 'info', 'group', 'groupEnd'] }], // 限制 console.log 滥用，仅保留 warn/error 允许打日志
       'no-debugger': 'error', // 生产环境代码严格禁止残留 debugger 调试断点
       eqeqeq: ['error', 'always'], // 强制全等比较，必须使用 === 和 !==，禁用双等号 ==
       'no-return-await': 'off', // 关闭原生规则，交由下方 TS 专用规则处理
