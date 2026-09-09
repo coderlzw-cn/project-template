@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
   {
-    ignores: ['eslint.config.mjs', 'commitlint.config.cjs', 'webpack.config.cjs', 'ecosystem.config.cjs', 'dist/**', 'coverage/**'],
+    ignores: ['eslint.config.mjs', 'commitlint.config.cjs', 'webpack.config.cjs', 'ecosystem.config.*', 'dist/**', 'coverage/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

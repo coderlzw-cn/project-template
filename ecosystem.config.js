@@ -11,6 +11,9 @@ module.exports = {
       exec_mode: 'fork',
 
       autorestart: true,
+      // ApplicationControlService.stop() 以 0 退出时保持停止；
+      // restart() 使用非 0 专用退出码，仍会由 PM2 自动拉起。
+      stop_exit_codes: [0],
       watch: false,
       max_memory_restart: '512M',
 

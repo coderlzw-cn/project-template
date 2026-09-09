@@ -13,6 +13,7 @@ import { appConfig } from './config/app.config';
 import { authJwtValidationSchema } from './config/jwt.config';
 import { mysqlConfig, mysqlValidationSchema } from './config/mysql.config';
 import { DEFAULT_LANGUAGE, LANGUAGE_FALLBACKS } from './constants/i18n.constants';
+import { ApplicationControlModule } from './infrastructure/application-control';
 import { HealthModule } from './infrastructure/health/health.module';
 import { InfluxdbModule } from './infrastructure/influxdb';
 import { licenseValidationSchema } from './license/license.config';
@@ -53,6 +54,11 @@ const envFilePath = [`.env.${environment}.local`, `.env.${environment}`, '.env.l
     }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
+    ApplicationControlModule.forRoot({
+      isGlobal: true,
+      // pnpm dev 的 Webpack watcher 是 Nest 子进程的父进程；开发环境 stop 时一并结束它。
+      terminateParentOnStop: isDevelopment,
+    }),
     HealthModule,
     UserModule,
     // LicenseModule,

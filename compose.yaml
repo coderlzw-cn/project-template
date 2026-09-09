@@ -5,7 +5,9 @@ services:
       dockerfile: Dockerfile
     image: nestjs-webpack-template:latest
     init: true
-    restart: unless-stopped
+    # 0 表示 ApplicationControlService.stop()，保持停止；
+    # restart() 使用非 0 退出码，会触发容器重启。
+    restart: on-failure
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0

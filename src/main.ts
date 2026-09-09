@@ -12,6 +12,7 @@ import { AppModule } from './app.module';
 import { appConfig } from './config/app.config';
 import { CatchEverythingFilter } from './filters/all-exception.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { ApplicationControlService } from './infrastructure/application-control';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { LocaleResponseMiddleware } from './middleware/locale-response.middleware';
 import { MaintenanceModeMiddleware } from './middleware/maintenance-mode.middleware';
@@ -114,6 +115,7 @@ async function bootstrap() {
   });
 
   application = app;
+  app.get(ApplicationControlService).bind(app);
   const httpAdapterHost = app.get(HttpAdapterHost);
   const appConfiguration = appConfig();
   const expressApp = app.getHttpAdapter().getInstance<Application>();
