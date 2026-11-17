@@ -1,6 +1,6 @@
 import 'i18next';
 import { DEFAULT_LANGUAGE } from './constants';
-import type { LocaleResourceTypes } from './localeResources.generated';
+import type { resources } from './resources';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -9,7 +9,7 @@ declare module 'i18next' {
     strictKeyChecks: true;
     returnNull: false;
     returnEmptyString: false;
-    // 所有 locale 的结构由生成脚本校验一致，因此使用默认语言作为 canonical 类型源。
-    resources: LocaleResourceTypes[typeof DEFAULT_LANGUAGE];
+    // 直接从默认语言的 TS 资源推导 key 和插值参数，无需生成类型文件。
+    resources: (typeof resources)[typeof DEFAULT_LANGUAGE];
   }
 }

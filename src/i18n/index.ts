@@ -9,8 +9,7 @@ import {
   SUPPORTED_LANGUAGES,
   type Language,
 } from './constants';
-import { localeTransitions } from './loadLangsToResouerce';
-import type { NamespaceName } from './localeResources.generated';
+import { resources } from './resources';
 
 /**
  * 同步浏览器语言语义。dir 由 i18next 推导，未来增加阿拉伯语等 RTL 语言时无需再改布局入口。
@@ -26,9 +25,7 @@ function setDocumentLanguage(
 }
 
 // namespace 直接从默认语言资源派生，新增业务语言包时无需手动维护初始化配置。
-const namespaces = Object.keys(
-  localeTransitions[DEFAULT_LANGUAGE],
-) as NamespaceName[];
+const namespaces = Object.keys(resources[DEFAULT_LANGUAGE]);
 
 /**
  * 优先级：已持久化的用户选择 > 浏览器语言列表 > 默认语言。
@@ -54,7 +51,7 @@ export const i18nReady = i18n
   .on('languageChanged', setDocumentLanguage)
   .use(initReactI18next)
   .init({
-    resources: localeTransitions, // 语言包资源
+    resources, // 语言包资源
     lng: initialLanguage, // 当前初始化语言
     fallbackLng: DEFAULT_LANGUAGE, // 找不到翻译时降级语言
     supportedLngs: SUPPORTED_LANGUAGES, // 允许使用的语言列表
@@ -65,7 +62,7 @@ export const i18nReady = i18n
     returnNull: false, // 缺失翻译键时禁止返回 null
     returnEmptyString: false, // 缺失翻译键时禁止返回空字符串
     returnObjects: false, // 禁止翻译返回对象，只返回字符串
-    ignoreJSONStructure: false, // 严格校验JSON翻译结构，关闭宽松解析
+    ignoreJSONStructure: false, // 按嵌套对象查找翻译，关闭平铺 key 的宽松解析
     saveMissing: import.meta.env.DEV, // 开发环境开启上报缺失的翻译key，方便补全文案
     missingKeyHandler: (languages, namespace, key) => {
       console.warn(

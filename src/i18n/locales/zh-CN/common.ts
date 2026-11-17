@@ -1,0 +1,138 @@
+export const zhCommon = {
+  yes: "是",
+  no: "否",
+  all: "全部",
+  none: "无",
+  unknown: "未知",
+  optional: "可选",
+  required: "必填",
+  loading: {
+    plain: "加载中...",
+  },
+  language: {
+    label: "切换语言",
+    zhCN: "简体中文",
+    enUS: "English",
+  },
+  theme: {
+    label: "切换主题",
+    light: "浅色",
+    dark: "深色",
+    system: "跟随系统",
+  },
+  /** 操作只用动词，按钮、菜单和链接共用。对象放在标题里；离开页面后看不出对象时，再单独写完整文案。 */
+  action: {
+    add: "添加",
+    apply: "应用",
+    back: "返回",
+    cancel: "取消",
+    clear: "清空",
+    close: "关闭",
+    collapse: "收起",
+    confirm: "确认",
+    copy: "复制",
+    create: "新建",
+    delete: "删除",
+    deleteCount: "删除（{{count}}）",
+    deselectAll: "取消全选",
+    detail: "详情",
+    disable: "禁用",
+    download: "下载",
+    duplicate: "复制副本",
+    edit: "编辑",
+    enable: "启用",
+    expand: "展开",
+    export: "导出",
+    filter: "筛选",
+    generate: "生成",
+    import: "导入",
+    move: "移动",
+    more: "更多",
+    paste: "粘贴",
+    preview: "预览",
+    refresh: "刷新",
+    redo: "重做",
+    remove: "移除",
+    rename: "重命名",
+    reset: "重置",
+    restore: "恢复",
+    retry: "重试",
+    save: "保存",
+    search: "搜索",
+    select: "选择",
+    selectAll: "全选",
+    start: "启动",
+    stop: "停止",
+    submit: "提交",
+    sync: "同步",
+    undo: "撤销",
+    update: "更新",
+    upload: "上传",
+    view: "查看",
+    clone: "克隆",
+  },
+  /** 文件下载进度。版本、配置和抓包共用。 */
+  download: {
+    loading: "正在下载 {{name}}…",
+    percent: "正在下载 {{name}}… {{percent}}%",
+    size: "正在下载 {{name}}… {{size}}",
+    done: "已下载 {{name}}",
+    failed: "暂时无法下载 {{name}}",
+  },
+  /** 增删改结果。各功能共用，不带对象名。 */
+  result: {
+    // 基础操作
+    created: "创建成功",
+    added: "添加成功",
+    updated: "更新成功",
+    deleted: "删除成功",
+    deletedMany: "批量删除成功",
+    saved: "保存成功",
+    reset: "重置成功",
+
+    // 文件与数据
+    uploaded: "上传成功",
+    downloaded: "下载成功",
+    imported: "导入成功",
+    exported: "导出成功",
+
+    // 资源操作
+    renamed: "重命名成功",
+    copied: "复制成功",
+    cloned: "克隆成功",
+    moved: "移动成功",
+    restored: "恢复成功",
+
+    // 状态操作
+    enabled: "启用成功",
+    disabled: "禁用成功",
+    activated: "激活成功",
+    deactivated: "停用成功",
+    locked: "锁定成功",
+    unlocked: "解锁成功",
+
+    // 关联操作
+    bound: "绑定成功",
+    unbound: "解绑成功",
+    assigned: "分配成功",
+    unassigned: "取消分配成功",
+
+    // 流程操作
+    submitted: "提交成功",
+    approved: "审核通过",
+    rejected: "审核拒绝",
+    published: "发布成功",
+    unpublished: "撤回成功",
+
+    // 系统操作
+    started: "启动成功",
+    stopped: "停止成功",
+    restarted: "重启成功",
+    synced: "同步成功",
+    verified: "验证成功",
+    sent: "发送成功",
+  },
+} as const;
+
+// I18n Ally 的 TypeScript parser 读取默认导出；命名导出保留给应用资源注册使用。
+export default zhCommon;

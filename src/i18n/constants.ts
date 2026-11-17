@@ -1,4 +1,4 @@
-import type { LocaleName } from './localeResources.generated';
+import type { LocaleName } from './resources';
 
 export const Language = {
   ZH_CN: 'zh-CN',
@@ -15,7 +15,7 @@ export const LANGUAGE_LABELS: Record<Language, string> = {
 };
 
 /**
- * i18next 的语言白名单由标签配置派生。生成的 LocaleName 会强制每个 locales 目录都有标签，
+ * i18next 的语言白名单由标签配置派生。LocaleName 会强制每个已注册语言都有标签，
  * 因此新增语言时若忘记补充 LANGUAGE_LABELS，TypeScript 会直接报错。
  */
 export const SUPPORTED_LANGUAGES = Object.keys(LANGUAGE_LABELS) as Language[];

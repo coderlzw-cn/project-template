@@ -1,10 +1,11 @@
 import { LANGUAGE_OPTIONS, useLanguage } from '@/hooks/useLanguage';
 import { THEME_OPTIONS, useTheme } from '@/hooks/useTheme';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
   const { language, setLanguage } = useLanguage();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'home', 'validation']);
+
   const {
     themeMode,
     resolvedTheme,
@@ -18,11 +19,11 @@ export default function Home() {
     <div className='relative min-h-dvh overflow-hidden'>
       <div
         aria-hidden
-        className='pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklch,var(--primary)_18%,transparent),transparent_55%),radial-gradient(ellipse_at_bottom_right,color-mix(in_oklch,var(--foreground)_6%,transparent),transparent_45%)]'
+        className='pointer-events-none absolute inset-0 bg-[radial-gradientCommon(ellipse_at_top,color-mix(in_oklch,var(--primary)_18%,transparent),transparent_55%),radial-gradientCommon(ellipse_at_bottom_right,color-mix(in_oklch,var(--foreground)_6%,transparent),transparent_45%)]'
       />
       <div
         aria-hidden
-        className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklch,var(--foreground)_6%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklch,var(--foreground)_6%,transparent)_1px,transparent_1px)] mask-[radial-gradient(ellipse_at_center,black,transparent_75%)] bg-size-[48px_48px] opacity-[0.35]'
+        className='pointer-events-none absolute inset-0 bg-[linear-gradientCommon(to_right,color-mix(in_oklch,var(--foreground)_6%,transparent)_1px,transparent_1px),linear-gradientCommon(to_bottom,color-mix(in_oklch,var(--foreground)_6%,transparent)_1px,transparent_1px)] mask-[radial-gradientCommon(ellipse_at_center,black,transparent_75%)] bg-size-[48px_48px] opacity-[0.35]'
       />
 
       <div className='relative mx-auto flex min-h-dvh w-full max-w-lg flex-col px-6 py-8 sm:px-8 sm:py-10'>
@@ -35,29 +36,26 @@ export default function Home() {
             onClick={toggleTheme}
             className='rounded-lg border border-border bg-card/70 px-3 py-1.5 text-sm text-foreground backdrop-blur-sm transition hover:bg-accent'
           >
-            {isDark ? 'Light' : 'Dark'}
+            {isDark ? t('common:theme.light') : t('common:theme.dark')}
           </button>
         </header>
 
         <main className='flex flex-1 flex-col justify-center gap-10 py-12'>
           <section className='animate-fade-up space-y-4'>
             <h1 className='font-mono text-5xl leading-none tracking-tight text-foreground sm:text-6xl'>
-              {t('welcome')}
+              {t('home:title')}
             </h1>
             <p className='max-w-md text-lg text-muted-foreground'>
-              {t('hello', { name: 'John' })}
+              {t('home:greeting', { name: 'John' })}
             </p>
             <p className='text-sm text-muted-foreground'>
-              <Trans
-                i18nKey='desc'
-                components={[
-                  <a
-                    key='detail'
-                    href='/detail'
-                    className='underline decoration-primary/50 underline-offset-4 transition hover:text-foreground hover:decoration-primary'
-                  />,
-                ]}
-              />
+              <a
+                href='/detail'
+                className='underline decoration-primary/50 underline-offset-4 transition hover:text-foreground hover:decoration-primary'
+              >
+                {t('common:action.detail')}
+              </a>
+              <span className='ml-2'>{t('home:description')}</span>
             </p>
           </section>
 
@@ -65,7 +63,7 @@ export default function Home() {
             <div className='space-y-3'>
               <div className='flex items-baseline justify-between gap-3'>
                 <h2 className='text-sm font-medium text-foreground'>
-                  Language
+                  {t('common:language.label')}
                 </h2>
                 <span className='text-xs text-muted-foreground'>
                   {language}
@@ -79,11 +77,10 @@ export default function Home() {
                       key={option.value}
                       type='button'
                       onClick={() => setLanguage(option.value)}
-                      className={`rounded-lg px-3 py-2 text-sm transition ${
-                        active
-                          ? 'bg-primary text-primary-foreground'
-                          : 'border border-border bg-card/60 text-foreground hover:bg-accent'
-                      }`}
+                      className={`rounded-lg px-3 py-2 text-sm transition ${active
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-border bg-card/60 text-foreground hover:bg-accent'
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -91,13 +88,18 @@ export default function Home() {
                 })}
               </div>
               <p className='text-sm text-muted-foreground'>
-                {t('item', { count: 1 })} · {t('item', { count: 5 })}
+                {t('home:item', { count: 1 })} · {t('home:item', { count: 5 })}
+              </p>
+              <p className='text-sm text-muted-foreground'>
+                {t('validation:required')} · {t('validation:format.email')}
               </p>
             </div>
 
             <div className='space-y-3'>
               <div className='flex items-baseline justify-between gap-3'>
-                <h2 className='text-sm font-medium text-foreground'>Theme</h2>
+                <h2 className='text-sm font-medium text-foreground'>
+                  {t('common:theme.label')}
+                </h2>
                 <span className='text-xs text-muted-foreground'>
                   {themeMode} / {resolvedTheme}
                 </span>
@@ -110,11 +112,10 @@ export default function Home() {
                       key={option.value}
                       type='button'
                       onClick={() => setThemeMode(option.value)}
-                      className={`rounded-lg px-3 py-2 text-sm transition ${
-                        active
-                          ? 'bg-primary text-primary-foreground'
-                          : 'border border-border bg-card/60 text-foreground hover:bg-accent'
-                      }`}
+                      className={`rounded-lg px-3 py-2 text-sm transition ${active
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-border bg-card/60 text-foreground hover:bg-accent'
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -126,7 +127,7 @@ export default function Home() {
                 onClick={resetTheme}
                 className='text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline'
               >
-                重置主题
+                {t('common:action.reset')}
               </button>
             </div>
           </section>
