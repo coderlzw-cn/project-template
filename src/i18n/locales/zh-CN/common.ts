@@ -1,4 +1,4 @@
-export const zhCommon = {
+export default {
   yes: "是",
   no: "否",
   all: "全部",
@@ -133,6 +133,3 @@ export const zhCommon = {
     sent: "发送成功",
   },
 } as const;
-
-// I18n Ally 的 TypeScript parser 读取默认导出；命名导出保留给应用资源注册使用。
-export default zhCommon;

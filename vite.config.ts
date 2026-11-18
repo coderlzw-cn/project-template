@@ -19,35 +19,40 @@ import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import { inspectorServer } from '@react-dev-inspector/vite-plugin';
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   // 加载当前环境（.env、.env.[mode]）的变量
   const env = loadEnv(mode, process.cwd());
+  const isDevServer = command === 'serve';
+  const isBuild = command === 'build';
 
   return {
     plugins: [
       react(),
       babel({ presets: [reactCompilerPreset()] }),
-      inspectorServer(),
-      // 启用插件检查器，可通过访问特定URL查看构建过程细节
-      Inspect(),
+      ...(isDevServer ? [inspectorServer(), Inspect()] : []),
       // 集成TailwindCSS，自动处理配置文件和CSS类生成
       tailwindcss(),
-      // 启用资源压缩，默认生成.gz格式压缩文件
-      viteCompression(),
-      // 配置打包分析工具
-      visualizer({
-        open: false, // 打包完成后自动打开分析页面
-        gzipSize: true, // 显示gzip压缩后的体积
-        brotliSize: true, // 显示brotli压缩后的体积
-        sourcemap: false, // 生产环境不生成sourcemap，与 build.sourcemap 保持一致
-      }),
-      // 配置本地HTTPS开发环境
-      basicSsl({
-        name: 'test', // 证书名称
-        domains: ['*.example.com'], // 信任的域名（支持通配符）
-        // 证书存储目录（import.meta.dirname 为 ESM 写法，等价于 CJS 的 __dirname）
-        certDir: path.resolve(import.meta.dirname, '.devServer/cert'),
-      }),
+      ...(isBuild
+        ? [
+            // 启用资源压缩，生成 .gz 文件
+            viteCompression(),
+            visualizer({
+              open: false,
+              gzipSize: true,
+              brotliSize: true,
+              sourcemap: false,
+            }),
+          ]
+        : []),
+      ...(isDevServer
+        ? [
+            basicSsl({
+              name: 'test',
+              domains: ['*.example.com'],
+              certDir: path.resolve(import.meta.dirname, '.devServer/cert'),
+            }),
+          ]
+        : []),
       // 配置HTML处理插件
       createHtmlPlugin({
         minify: true, // 启用HTML压缩
@@ -60,9 +65,7 @@ export default defineConfig(({ mode }) => {
       ViteImageOptimizer({}),
     ],
     resolve: {
-      alias: {
-        '@': path.join(import.meta.dirname, 'src'),
-      },
+      tsconfigPaths: true,
     },
     server: {
       open: true,
@@ -74,25 +77,10 @@ export default defineConfig(({ mode }) => {
           rewrite: urlPath => urlPath.replace(/^\/api/, ''),
         },
       },
-      watch: {
-        // 缩小文件监听范围（排除 node_modules 等无需监听的目录）
-        ignored: ['**/node_modules/**', '**/.git/**'],
-      },
     },
-    optimizeDeps: {
-      // 指定需要优先预构建的依赖（减少二次预构建）
-      include: ['react', 'react-dom'], // 高频依赖
-      exclude: [], // 排除无法预构建的库
-    },
-    oxc: {},
     build: {
-      sourcemap: false, // "hidden"
       // 关闭计算包体积（大型项目可节省时间）
       reportCompressedSize: false,
-      // 使用 oxc 压缩（比 terser 快 10-100 倍）
-      minify: 'oxc',
-      // 小于此阈值的资源转为 base64（减少 HTTP 请求）
-      assetsInlineLimit: 4096, // 4KB
       rolldownOptions: {
         output: {
           // 按资源类型拆分不同目录

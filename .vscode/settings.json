@@ -6,21 +6,22 @@
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
 
-  // 国际化
-  "i18n-ally.localesPaths": ["src/i18n/locales"],
-  "i18n-ally.sourceLanguage": "zh-CN",
-  "i18n-ally.displayLanguage": "zh-CN",
-  "i18n-ally.enabledFrameworks": ["react-i18next"],
-  // 限制启用的资源格式解析器；语言包现在使用 TypeScript
-  "i18n-ally.enabledParsers": ["ts"],
-  // 兼容 TypeScript 6，避免 i18n-ally 的 ts-node 推断出错误的 rootDir 和过时 target
-  "i18n-ally.parsers.typescript.compilerOptions": {
-    "rootDir": ".",
-    "target": "ES2022"
-  },
-  // 使用 TS 文件名作为 i18next namespace
-  "i18n-ally.namespace": true,
-  "i18n-ally.pathMatcher": "{locale}/{namespace}.ts",
-  "i18n-ally.sortKeys": true,
-  "i18n-ally.annotationInPlace": false
+  // i18n Ally Next：src/i18n/locales/{locale}/{namespace}.ts
+  "i18n-ally-next.localesPaths": ["src/i18n/locales"],
+  "i18n-ally-next.sourceLanguage": "zh-CN",
+  "i18n-ally-next.displayLanguage": "zh-CN",
+  "i18n-ally-next.enabledFrameworks": ["react-i18next"],
+  "i18n-ally-next.enabledParsers": ["ts"],
+  "i18n-ally-next.dirStructure": "dir",
+  "i18n-ally-next.namespace": true,
+  "i18n-ally-next.defaultNamespace": "common",
+  "i18n-ally-next.pathMatcher": "{locale}/{namespace}.{ext}",
+  "i18n-ally-next.keystyle": "nested",
+  "i18n-ally-next.ignoreFiles": ["**/index.ts"],
+  "i18n-ally-next.annotationInPlace": false,
+  // 项目 package.json 是 "type": "module"，插件自带的 ts-node 无法 require 这些 .ts 语言包
+  "i18n-ally-next.parsers.typescript.tsNodePath": "/Users/liangzhiwei/开发/project-template/.vscode/i18n-ally-next-loader.cjs",
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  }
 }

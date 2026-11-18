@@ -1,30 +1,33 @@
+import type { Theme } from '@/hooks/useTheme';
+import { getBrowserLanguage, type Language } from '@/i18n/language';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 
-type Theme = 'light' | 'dark';
+
 
 interface AppState {
-  /** 主题模式 */
   theme: Theme;
+  language: Language;
   setTheme: (theme: Theme) => void;
+  setLanguage: (language: Language) => void;
 }
 
-/**
- * 应用级全局状态（zustand）
- *
- * 约定：
- * - 每个业务域一个 store 文件，放在 src/stores/ 下（如 user.ts、app.ts）
- * - 组件中按需选取字段，避免整个 store 订阅导致多余渲染：
- *   const theme = useAppStore(state => state.theme)
- * - 需要跨刷新保留的状态用 persist 中间件持久化到 localStorage
- */
+
 export const useAppStore = create<AppState>()(
-  persist(
-    set => ({
-      theme: 'light',
-      setTheme: theme => set({ theme }),
-    }),
-    // localStorage 的 key
-    { name: 'app-store' },
+  devtools(
+    persist(
+      (set) => ({
+        theme: 'system',
+        language: getBrowserLanguage(),
+        setTheme: (theme) => set({ theme }, undefined, "app/setTheme"),
+        setLanguage: language => set({ language }),
+      }),
+      {
+        name: 'app-store',
+        storage: createJSONStorage(() => sessionStorage),
+      },
+    ),
+    // 设置了 name 后，开发环境下的 Redux DevTools 扩展会显示为指定名称，方便区分不同的 store。
+    { name: "AppStore", enabled: import.meta.env.DEV },
   ),
 );

@@ -1,23 +1,23 @@
-export const enUSValidation = {
+export default {
   // Common
   required: "This field is required",
   invalid: "Invalid input",
-  invalidType: "Invalid data type",
-  invalidValue: "The value is not allowed",
+  invalidType: "Incorrect data type",
+  invalidValue: "The value is outside the allowed range",
   custom: "The input does not meet the requirements",
 
   // Strings
   string: {
     min: "Must contain at least {{minimum}} characters",
-    max: "Must contain at most {{maximum}} characters",
+    max: "Must contain no more than {{maximum}} characters",
     length: "Must contain exactly {{length}} characters",
     nonempty: "Cannot be empty",
     includes: "Must contain {{value}}",
     startsWith: "Must start with {{prefix}}",
     endsWith: "Must end with {{suffix}}",
     regex: "Invalid format",
-    lowercase: "Must contain only lowercase letters",
-    uppercase: "Must contain only uppercase letters",
+    lowercase: "May contain lowercase letters only",
+    uppercase: "May contain uppercase letters only",
   },
 
   // String formats
@@ -45,11 +45,11 @@ export const enUSValidation = {
     base64url: "Invalid Base64URL format",
     hex: "Invalid hexadecimal format",
     jwt: "Invalid JWT",
-    creditCard: "Invalid credit card number",
+    creditCard: "Invalid card number",
     currencyCode: "Invalid currency code",
     iban: "Invalid IBAN",
     hash: "Invalid hash",
-    isoDate: "Invalid date format. Expected YYYY-MM-DD",
+    isoDate: "Invalid date format; expected YYYY-MM-DD",
     isoTime: "Invalid time format",
     isoDateTime: "Invalid date-time format",
     isoDuration: "Invalid duration format",
@@ -58,9 +58,9 @@ export const enUSValidation = {
   // Numbers
   number: {
     min: "Must be at least {{minimum}}",
-    max: "Must be at most {{maximum}}",
+    max: "Must be no greater than {{maximum}}",
     greaterThan: "Must be greater than {{minimum}}",
-    lessThan: "Must be less than {{maximum}}",
+    lessThan: "Must be less than {{minimum}}",
     integer: "Must be an integer",
     safeInteger: "Must be a safe integer",
     positive: "Must be a positive number",
@@ -71,12 +71,12 @@ export const enUSValidation = {
     finite: "Must be a finite number",
   },
 
-  // BigInts
+  // Big integers
   bigint: {
     min: "Must be at least {{minimum}}",
-    max: "Must be at most {{maximum}}",
+    max: "Must be no greater than {{maximum}}",
     greaterThan: "Must be greater than {{minimum}}",
-    lessThan: "Must be less than {{maximum}}",
+    lessThan: "Must be less than {{minimum}}",
     positive: "Must be a positive integer",
     nonnegative: "Cannot be negative",
     negative: "Must be a negative integer",
@@ -94,20 +94,20 @@ export const enUSValidation = {
   // Arrays
   array: {
     min: "Must contain at least {{minimum}} items",
-    max: "Must contain at most {{maximum}} items",
+    max: "Must contain no more than {{maximum}} items",
     length: "Must contain exactly {{length}} items",
     nonempty: "Must contain at least one item",
   },
 
   // Objects
   object: {
-    unrecognizedKeys: "Unrecognized keys: {{keys}}",
+    unrecognizedKeys: "Contains unrecognized fields: {{keys}}",
   },
 
   // Enums and literals
   enum: {
     invalid: "Please select a valid option",
-    literal: "Invalid value",
+    literal: "The value does not meet the requirements",
   },
 
   // Unions
@@ -118,7 +118,7 @@ export const enUSValidation = {
   // Maps and Sets
   collection: {
     min: "Must contain at least {{minimum}} items",
-    max: "Must contain at most {{maximum}} items",
+    max: "Must contain no more than {{maximum}} items",
     size: "Must contain exactly {{size}} items",
     invalidKey: "Invalid collection key",
     invalidElement: "Invalid collection element",
@@ -146,12 +146,12 @@ export const enUSValidation = {
 
   tooBig: {
     string: "Length must not exceed {{maximum}}",
-    number: "Must be at most {{maximum}}",
-    bigint: "Must be at most {{maximum}}",
+    number: "Must be no greater than {{maximum}}",
+    bigint: "Must be no greater than {{maximum}}",
     date: "Date must be on or before {{maximum}}",
-    array: "Must contain at most {{maximum}} items",
-    set: "Must contain at most {{maximum}} items",
-    map: "Must contain at most {{maximum}} items",
+    array: "Must contain no more than {{maximum}} items",
+    set: "Must contain no more than {{maximum}} items",
+    map: "Must contain no more than {{maximum}} items",
     file: "File size must not exceed {{maximum}}",
   },
 
@@ -159,14 +159,14 @@ export const enUSValidation = {
   notMultipleOf: "Must be a multiple of {{divisor}}",
 
   // Other Zod errors
-  unrecognizedKeys: "Unrecognized keys: {{keys}}",
+  unrecognizedKeys: "Contains unrecognized fields: {{keys}}",
   invalidUnion: "Input does not match any of the allowed formats",
   invalidKey: "Invalid object or collection key",
   invalidElement: "Invalid object or collection element",
   invalidFormat: "Invalid format",
 
-  isEmail: "must be an email address",
-  isNotEmpty: "must not be empty",
-  isString: "must be a string",
-  matches: "has an invalid format",
+  isEmail: "Invalid email address",
+  isNotEmpty: "Cannot be empty",
+  isString: "Must be a string",
+  matches: "Invalid format",
 } as const;

@@ -1,4 +1,4 @@
-export const zhValidation = {
+export default {
   // 通用
   required: "此字段为必填项",
   invalid: "输入内容无效",
@@ -170,5 +170,3 @@ export const zhValidation = {
   isString: "必须是字符串",
   matches: "格式不正确",
 } as const;
-
-export default zhValidation;

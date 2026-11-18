@@ -3,6 +3,8 @@ import { isRouteErrorResponse, useRouteError } from 'react-router';
 /** 路由级错误页：捕获 loader/action/懒加载/渲染错误 */
 export default function RouteError() {
   const error = useRouteError();
+  console.log(error);
+
 
   return (
     <div className='flex h-screen flex-col items-center justify-center gap-2'>

@@ -1,4 +1,4 @@
-export const enUSCommon = {
+export default {
   yes: "Yes",
   no: "No",
   all: "All",
@@ -7,20 +7,20 @@ export const enUSCommon = {
   optional: "Optional",
   required: "Required",
   loading: {
-    plain: "Loading",
+    plain: "Loading...",
   },
   language: {
     label: "Change language",
-    zhCN: "简体中文",
+    zhCN: "Simplified Chinese",
     enUS: "English",
   },
   theme: {
     label: "Change theme",
     light: "Light",
     dark: "Dark",
-    system: "System",
-    current: "Current",
+    system: "Follow system",
   },
+  /** Use verbs for actions shared by buttons, menus, and links. Put the object in the title; use a full label when the object is unclear. */
   action: {
     add: "Add",
     apply: "Apply",
@@ -34,7 +34,7 @@ export const enUSCommon = {
     create: "Create",
     delete: "Delete",
     deleteCount: "Delete ({{count}})",
-    deselectAll: "Deselect All",
+    deselectAll: "Deselect all",
     detail: "Details",
     disable: "Disable",
     download: "Download",
@@ -60,7 +60,7 @@ export const enUSCommon = {
     save: "Save",
     search: "Search",
     select: "Select",
-    selectAll: "Select All",
+    selectAll: "Select all",
     start: "Start",
     stop: "Stop",
     submit: "Submit",
@@ -71,15 +71,15 @@ export const enUSCommon = {
     view: "View",
     clone: "Clone",
   },
-  /** 文件下载进度。版本、配置和抓包共用。 */
+  /** Shared download progress messages for versions, configuration, and captures. */
   download: {
     loading: "Downloading {{name}}…",
     percent: "Downloading {{name}}… {{percent}}%",
     size: "Downloading {{name}}… {{size}}",
     done: "Downloaded {{name}}",
-    failed: "Cannot download {{name}}",
+    failed: "Unable to download {{name}} right now",
   },
-  /** Shared outcomes for create, update, and delete. No object name. */
+  /** Shared results for create, update, and delete operations. No object name. */
   result: {
     created: "Created successfully",
     added: "Added successfully",
@@ -110,22 +110,19 @@ export const enUSCommon = {
     bound: "Bound successfully",
     unbound: "Unbound successfully",
     assigned: "Assigned successfully",
-    unassigned: "Unassigned successfully",
+    unassigned: "Assignment removed successfully",
 
     submitted: "Submitted successfully",
-    approved: "Approved successfully",
-    rejected: "Rejected successfully",
+    approved: "Approved",
+    rejected: "Rejected",
     published: "Published successfully",
     unpublished: "Unpublished successfully",
 
     started: "Started successfully",
     stopped: "Stopped successfully",
     restarted: "Restarted successfully",
-    synced: "Synchronized successfully",
+    synced: "Synced successfully",
     verified: "Verified successfully",
     sent: "Sent successfully",
   },
 } as const;
-
-// I18n Ally 的 TypeScript parser 读取默认导出；命名导出保留给应用资源注册使用。
-export default enUSCommon;

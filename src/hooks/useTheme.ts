@@ -1,267 +1,134 @@
-export const ThemeMode = {
+import { useAppStore } from '@/stores/app';
+import { useCallback, useEffect, useRef } from 'react';
+
+/** 可选择的主题模式。 */
+export const Theme = {
   LIGHT: 'light',
   DARK: 'dark',
   SYSTEM: 'system',
 } as const;
 
-export type ThemeMode = (typeof ThemeMode)[keyof typeof ThemeMode];
+export type Theme = (typeof Theme)[keyof typeof Theme];
+/** 用户未设置主题时使用系统偏好。 */
+export const DEFAULT_THEME = Theme.SYSTEM;
 
-export type ResolvedTheme = typeof ThemeMode.LIGHT | typeof ThemeMode.DARK;
-
-export const DEFAULT_THEME_MODE = ThemeMode.SYSTEM;
-
-export const THEME_STORAGE_KEY = 'app-theme';
-
-export interface ThemeOption {
-  value: ThemeMode;
-  label: string;
-}
-
-export const THEME_OPTIONS: ThemeOption[] = [
-  {
-    value: ThemeMode.LIGHT,
-    label: '浅色',
-  },
-  {
-    value: ThemeMode.DARK,
-    label: '深色',
-  },
-  {
-    value: ThemeMode.SYSTEM,
-    label: '跟随系统',
-  },
+/** 主题选择器展示的选项。 */
+export const OPTIONS: Array<{ value: Theme; label: string }> = [
+  { value: Theme.LIGHT, label: '浅色' },
+  { value: Theme.DARK, label: '深色' },
+  { value: Theme.SYSTEM, label: '跟随系统' },
 ];
 
-function isThemeMode(value: unknown): value is ThemeMode {
-  return (
-    value === ThemeMode.LIGHT ||
-    value === ThemeMode.DARK ||
-    value === ThemeMode.SYSTEM
-  );
-}
-
-export function getStoredThemeMode(): ThemeMode {
-  if (typeof window === 'undefined') return DEFAULT_THEME_MODE;
-
-  try {
-    const value = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemeMode(value) ? value : DEFAULT_THEME_MODE;
-  } catch {
-    return DEFAULT_THEME_MODE;
-  }
-}
-
-export function saveThemeMode(themeMode: ThemeMode): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
-  } catch {
-    // 隐私模式、存储空间不足等情况下忽略缓存失败。
-  }
-}
-
+/** 系统深色模式变化的媒体查询。 */
 export const SYSTEM_DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)';
+/** 用户要求减少动态效果时关闭主题快照动画。 */
+export const REDUCED_MOTION_MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
 
-export function getSystemTheme(): ResolvedTheme {
-  if (typeof window === 'undefined') return ThemeMode.LIGHT;
+/** 校验持久化数据或外部传入值是否为受支持的主题。 */
+const isTheme = (value: unknown): value is Theme => value === Theme.LIGHT || value === Theme.DARK || value === Theme.SYSTEM;
 
-  return window.matchMedia(SYSTEM_DARK_MEDIA_QUERY).matches
-    ? ThemeMode.DARK
-    : ThemeMode.LIGHT;
-}
+/** 获取当前主题模式，优先级：传入的主题模式 > 已持久化的用户选择 > 系统主题。 */
+export const getTheme = (theme?: Theme): Theme => {
+  if (theme === undefined) {
+    if (typeof window === 'undefined') return DEFAULT_THEME;
+    const storedTheme = useAppStore.getState().theme;
+    return isTheme(storedTheme) ? storedTheme : DEFAULT_THEME;
+  }
 
-export function resolveTheme(themeMode: ThemeMode): ResolvedTheme {
-  if (themeMode === ThemeMode.SYSTEM) return getSystemTheme();
+  if (theme !== Theme.SYSTEM || typeof window === 'undefined') return theme;
+  return window.matchMedia(SYSTEM_DARK_MEDIA_QUERY).matches ? Theme.DARK : Theme.LIGHT;
+};
 
-  return themeMode;
-}
-
-export function applyTheme(resolvedTheme: ResolvedTheme): void {
+/** 保存主题模式到状态管理，并应用到页面。 */
+export const saveTheme = (themeMode: Theme, appliedTheme = getTheme(themeMode)) => {
+  if (typeof window !== 'undefined') useAppStore.getState().setTheme(themeMode);
   if (typeof document === 'undefined') return;
 
   const root = document.documentElement;
-  const isDark = resolvedTheme === ThemeMode.DARK;
+  root.classList.toggle('dark', appliedTheme === Theme.DARK);
+  root.dataset.theme = appliedTheme;
+  root.style.colorScheme = appliedTheme;
+};
 
-  root.classList.toggle('dark', isDark);
+export function useTheme() {
+  // 共享 store 让多个 hook 调用点保持同步；持久化中无效值回退到系统模式。
+  const storedTheme = useAppStore(state => state.theme);
+  const themeState = isTheme(storedTheme) ? storedTheme : DEFAULT_THEME;
+  const activeTransitionRef = useRef<ViewTransition | null>(null);
 
-  root.dataset.theme = resolvedTheme;
+  /** 更新主题；实际外观发生变化时，从触发点播放圆形快照过渡。 */
+  const changeTheme = useCallback((nextTheme: Theme, origin?: { x: number; y: number }) => {
+    if (!isTheme(nextTheme)) return;
 
-  root.style.colorScheme = resolvedTheme;
-}
+    const previousAppliedTheme = getTheme(getTheme());
+    const appliedTheme = getTheme(nextTheme);
+    const commit = () => saveTheme(nextTheme, appliedTheme);
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
+    // 仅在外观确实改变、用户未减少动态效果且浏览器支持快照时播放动画。
+    const canAnimate =
+      typeof window !== 'undefined' &&
+      typeof document !== 'undefined' &&
+      previousAppliedTheme !== appliedTheme &&
+      !window.matchMedia(REDUCED_MOTION_MEDIA_QUERY).matches &&
+      typeof document.startViewTransition === 'function';
 
-export interface UseThemeResult {
-  /**
-   * 用户选择的主题模式。
-   *
-   * 可能是 light、dark 或 system。
-   */
-  themeMode: ThemeMode;
-
-  /**
-   * 最终实际生效的主题。
-   *
-   * 只会是 light 或 dark。
-   */
-  resolvedTheme: ResolvedTheme;
-
-  /**
-   * 是否为深色主题。
-   */
-  isDark: boolean;
-
-  /**
-   * 是否为浅色主题。
-   */
-  isLight: boolean;
-
-  /**
-   * 是否跟随系统。
-   */
-  isSystem: boolean;
-
-  /**
-   * 可用于 Select、Radio 等组件的主题选项。
-   */
-  themeOptions: typeof THEME_OPTIONS;
-
-  /**
-   * 设置主题模式。
-   */
-  setThemeMode: (themeMode: ThemeMode) => void;
-
-  /**
-   * 在浅色和深色主题之间切换。
-   *
-   * 调用后会退出 system 模式。
-   */
-  toggleTheme: () => void;
-
-  /**
-   * 重置为跟随系统。
-   */
-  resetTheme: () => void;
-}
-
-export function useTheme(): UseThemeResult {
-  const activeThemeTransitionRef = useRef<ViewTransition | null>(null);
-
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(() =>
-    getStoredThemeMode(),
-  );
-
-  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() =>
-    getSystemTheme(),
-  );
-
-  const resolvedTheme = useMemo(
-    () =>
-      themeMode === ThemeMode.SYSTEM ? systemTheme : resolveTheme(themeMode),
-    [systemTheme, themeMode],
-  );
-
-  const commitThemeMode = useCallback(
-    (nextThemeMode: ThemeMode, nextResolvedTheme: ResolvedTheme) => {
-      applyTheme(nextResolvedTheme);
-      setThemeModeState(nextThemeMode);
-      saveThemeMode(nextThemeMode);
-    },
-    [],
-  );
-
-  const setThemeMode = useCallback(
-    (nextThemeMode: ThemeMode) => {
-      const nextResolvedTheme = resolveTheme(nextThemeMode);
-      const prefersReducedMotion = window.matchMedia(
-        '(prefers-reduced-motion: reduce)',
-      ).matches;
-
-      if (
-        typeof document.startViewTransition !== 'function' ||
-        prefersReducedMotion ||
-        nextResolvedTheme === resolvedTheme
-      ) {
-        commitThemeMode(nextThemeMode, nextResolvedTheme);
-        return;
-      }
-
-      // 连续切换时结束上一段动画，避免多个页面快照叠加。
-      activeThemeTransitionRef.current?.skipTransition();
-
-      const root = document.documentElement;
-      root.dataset.themeTransition =
-        nextResolvedTheme === ThemeMode.DARK ? 'to-dark' : 'to-light';
-
-      const transition = document.startViewTransition(() => {
-        // 在回调结束前同步提交新主题，保证浏览器截取到正确的新快照。
-        flushSync(() => {
-          commitThemeMode(nextThemeMode, nextResolvedTheme);
-        });
-      });
-
-      activeThemeTransitionRef.current = transition;
-
-      const cleanupTransition = () => {
-        if (activeThemeTransitionRef.current !== transition) return;
-
-        activeThemeTransitionRef.current = null;
-        delete root.dataset.themeTransition;
-      };
-
-      void transition.finished.then(cleanupTransition, cleanupTransition);
-    },
-    [commitThemeMode, resolvedTheme],
-  );
-
-  const toggleTheme = useCallback(() => {
-    setThemeMode(
-      resolvedTheme === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK,
-    );
-  }, [resolvedTheme, setThemeMode]);
-
-  const resetTheme = useCallback(() => {
-    setThemeMode(ThemeMode.SYSTEM);
-  }, [setThemeMode]);
-
-  useEffect(() => {
-    applyTheme(resolvedTheme);
-  }, [resolvedTheme]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (!canAnimate) {
+      activeTransitionRef.current?.skipTransition();
+      activeTransitionRef.current = null;
+      commit();
       return;
     }
 
-    const mediaQuery = window.matchMedia(SYSTEM_DARK_MEDIA_QUERY);
+    const root = document.documentElement;
+    activeTransitionRef.current?.skipTransition();
+    if (origin) {
+      root.style.setProperty('--reveal-x', `${origin.x}px`);
+      root.style.setProperty('--reveal-y', `${origin.y}px`);
+    }
+    root.dataset.themeTransition = 'circle';
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      setSystemTheme(event.matches ? ThemeMode.DARK : ThemeMode.LIGHT);
+    const transition = document.startViewTransition(commit);
+    activeTransitionRef.current = transition;
+
+    const cleanup = () => {
+      if (activeTransitionRef.current !== transition) return;
+      activeTransitionRef.current = null;
+      root.style.removeProperty('--reveal-x');
+      root.style.removeProperty('--reveal-y');
+      delete root.dataset.themeTransition;
     };
-
-    setSystemTheme(mediaQuery.matches ? ThemeMode.DARK : ThemeMode.LIGHT);
-
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
+    void transition.finished.then(cleanup, cleanup);
   }, []);
 
+  const resetTheme = useCallback(() => changeTheme(DEFAULT_THEME), [changeTheme]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // 等待持久化数据恢复后再应用，避免初始默认值覆盖用户选择。
+    if (!useAppStore.persist.hasHydrated()) {
+      useAppStore.persist.onFinishHydration(() => saveTheme(getTheme()));
+    }
+
+    // 仅在跟随系统模式下响应系统明暗偏好变化。
+    const mediaQuery = window.matchMedia(SYSTEM_DARK_MEDIA_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (themeState === Theme.SYSTEM) saveTheme(themeState, event.matches ? Theme.DARK : Theme.LIGHT);
+    };
+
+    // 同步当前主题到根节点，并订阅系统主题变化。
+    saveTheme(themeState);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [themeState]);
+
   return {
-    themeMode,
-    resolvedTheme,
-
-    isDark: resolvedTheme === ThemeMode.DARK,
-    isLight: resolvedTheme === ThemeMode.LIGHT,
-    isSystem: themeMode === ThemeMode.SYSTEM,
-
-    themeOptions: THEME_OPTIONS,
-
-    setThemeMode,
-    toggleTheme,
+    theme: themeState,
+    isDark: getTheme(themeState) === Theme.DARK,
+    isLight: getTheme(themeState) === Theme.LIGHT,
+    isSystem: themeState === Theme.SYSTEM,
+    options: OPTIONS,
+    changeTheme,
     resetTheme,
   };
 }

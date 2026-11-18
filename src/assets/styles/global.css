@@ -44,60 +44,6 @@
   }
 }
 
-@keyframes theme-slide-in-from-right {
-  from {
-    opacity: 0.75;
-    transform: translateX(100%);
-  }
-}
-
-@keyframes theme-slide-in-from-left {
-  from {
-    opacity: 0.75;
-    transform: translateX(-100%);
-  }
-}
-
-@keyframes theme-slide-out-to-left {
-  to {
-    opacity: 0.75;
-    transform: translateX(-24%);
-  }
-}
-
-@keyframes theme-slide-out-to-right {
-  to {
-    opacity: 0.75;
-    transform: translateX(24%);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html[data-theme-transition]::view-transition-old(root),
-  html[data-theme-transition]::view-transition-new(root) {
-    animation-duration: 460ms;
-    animation-fill-mode: both;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-    mix-blend-mode: normal;
-  }
-
-  html[data-theme-transition='to-dark']::view-transition-old(root) {
-    animation-name: theme-slide-out-to-left;
-  }
-
-  html[data-theme-transition='to-dark']::view-transition-new(root) {
-    animation-name: theme-slide-in-from-right;
-  }
-
-  html[data-theme-transition='to-light']::view-transition-old(root) {
-    animation-name: theme-slide-out-to-right;
-  }
-
-  html[data-theme-transition='to-light']::view-transition-new(root) {
-    animation-name: theme-slide-in-from-left;
-  }
-}
-
 @layer base {
   html {
     color-scheme: light dark;
@@ -175,4 +121,42 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Theme switch: circular reveal (View Transitions snapshot) --reveal-x / --reveal-y 可由点击位置注入；未注入时从右上角主题按钮附近展开 */
+html {
+  --reveal-x: calc(100% - 1.75rem);
+  --reveal-y: 1.75rem;
+  --reveal-r: 150vmax;
+}
+
+html[data-theme-transition='circle']::view-transition-old(root),
+html[data-theme-transition='circle']::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-theme-transition='circle']::view-transition-old(root) {
+  z-index: 1;
+}
+
+html[data-theme-transition='circle']::view-transition-new(root) {
+  z-index: 9999;
+  animation: theme-circle-reveal 0.55s cubic-bezier(0.76, 0.32, 0.29, 0.99) both;
+}
+
+@keyframes theme-circle-reveal {
+  from {
+    clip-path: circle(0px at var(--reveal-x) var(--reveal-y));
+  }
+
+  to {
+    clip-path: circle(var(--reveal-r) at var(--reveal-x) var(--reveal-y));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme-transition='circle']::view-transition-new(root) {
+    animation: none;
+  }
 }

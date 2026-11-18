@@ -1,6 +1,6 @@
 import 'i18next';
-import { DEFAULT_LANGUAGE } from './constants';
-import type { resources } from './resources';
+import { DEFAULT_LANGUAGE } from './language';
+import { zhCNResource } from './locales/zh-CN';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -10,6 +10,6 @@ declare module 'i18next' {
     returnNull: false;
     returnEmptyString: false;
     // 直接从默认语言的 TS 资源推导 key 和插值参数，无需生成类型文件。
-    resources: (typeof resources)[typeof DEFAULT_LANGUAGE];
+    resources: typeof zhCNResource;
   }
 }

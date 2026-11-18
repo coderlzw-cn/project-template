@@ -1,5 +1,5 @@
 import { LANGUAGE_OPTIONS, useLanguage } from '@/hooks/useLanguage';
-import { THEME_OPTIONS, useTheme } from '@/hooks/useTheme';
+import { OPTIONS, useTheme } from '@/hooks/useTheme';
 import { useTranslation } from 'react-i18next';
 
 export default function Home() {
@@ -7,11 +7,9 @@ export default function Home() {
   const { t } = useTranslation(['common', 'home', 'validation']);
 
   const {
-    themeMode,
-    resolvedTheme,
+    theme: themeMode,
     isDark,
-    setThemeMode,
-    toggleTheme,
+    changeTheme,
     resetTheme,
   } = useTheme();
 
@@ -33,10 +31,10 @@ export default function Home() {
           </p>
           <button
             type='button'
-            onClick={toggleTheme}
+            onClick={() => changeTheme(isDark ? 'light' : 'dark')}
             className='rounded-lg border border-border bg-card/70 px-3 py-1.5 text-sm text-foreground backdrop-blur-sm transition hover:bg-accent'
           >
-            {isDark ? t('common:theme.light') : t('common:theme.dark')}
+            {isDark ? t('theme.light') : t('common:theme.dark')}
           </button>
         </header>
 
@@ -66,7 +64,7 @@ export default function Home() {
                   {t('common:language.label')}
                 </h2>
                 <span className='text-xs text-muted-foreground'>
-                  {language}
+                  {/* {language} */}
                 </span>
               </div>
               <div className='flex flex-wrap gap-2'>
@@ -101,17 +99,17 @@ export default function Home() {
                   {t('common:theme.label')}
                 </h2>
                 <span className='text-xs text-muted-foreground'>
-                  {themeMode} / {resolvedTheme}
+                  {themeMode}
                 </span>
               </div>
               <div className='flex flex-wrap gap-2'>
-                {THEME_OPTIONS.map(option => {
+                {OPTIONS.map(option => {
                   const active = themeMode === option.value;
                   return (
                     <button
                       key={option.value}
                       type='button'
-                      onClick={() => setThemeMode(option.value)}
+                      onClick={() => changeTheme(option.value)}
                       className={`rounded-lg px-3 py-2 text-sm transition ${active
                         ? 'bg-primary text-primary-foreground'
                         : 'border border-border bg-card/60 text-foreground hover:bg-accent'

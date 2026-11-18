@@ -1,7 +1,7 @@
-import { createBrowserRouter } from 'react-router';
-import RouteError from '@/components/RouteError';
-import { ROUTES } from '@/constants/routes';
-import BaseLayout from '@/layouts';
+import { createBrowserRouter } from "react-router";
+import RouteError from "@/components/RouteError";
+import { ROUTES } from "@/constants/routes";
+import BaseLayout from "@/layouts";
 
 const router = createBrowserRouter([
   {
@@ -12,15 +12,16 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        hydrateFallbackElement: <div>Loading...</div>,
         // 页面懒加载，按路由拆分 chunk
         lazy: async () => ({
-          Component: (await import('@/pages/home')).default,
+          Component: (await import("@/pages/home")).default,
         }),
       },
       {
         path: ROUTES.NOT_FOUND,
         lazy: async () => ({
-          Component: (await import('@/pages/not-found')).default,
+          Component: (await import("@/pages/not-found")).default,
         }),
       },
     ],
